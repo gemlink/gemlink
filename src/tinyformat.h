@@ -694,9 +694,7 @@ inline const char* streamStateFromFormat(std::ostream& out, bool& spacePadPositi
     // boost::format class for forging the way here).
     bool intConversion = false;
     switch (*c) {
-    case 'u':
-    case 'd':
-    case 'i':
+    case 'u': case 'd': case 'i':
         out.setf(std::ios::dec, std::ios::basefield);
         intConversion = true;
         break;
@@ -706,31 +704,33 @@ inline const char* streamStateFromFormat(std::ostream& out, bool& spacePadPositi
         break;
     case 'X':
         out.setf(std::ios::uppercase);
-    case 'x':
-    case 'p':
+        // Falls through
+    case 'x': case 'p':
         out.setf(std::ios::hex, std::ios::basefield);
         intConversion = true;
         break;
     case 'E':
         out.setf(std::ios::uppercase);
+        // Falls through
     case 'e':
         out.setf(std::ios::scientific, std::ios::floatfield);
         out.setf(std::ios::dec, std::ios::basefield);
         break;
     case 'F':
         out.setf(std::ios::uppercase);
+        // Falls through
     case 'f':
         out.setf(std::ios::fixed, std::ios::floatfield);
         break;
     case 'G':
         out.setf(std::ios::uppercase);
+        // Falls through
     case 'g':
         out.setf(std::ios::dec, std::ios::basefield);
         // As in boost::format, let stream decide float format.
         out.flags(out.flags() & ~std::ios::floatfield);
         break;
-    case 'a':
-    case 'A':
+    case 'a': case 'A':
         TINYFORMAT_ERROR("tinyformat: the %a and %A conversion specs "
                          "are not supported");
         break;
