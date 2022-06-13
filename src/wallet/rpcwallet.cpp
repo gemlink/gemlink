@@ -42,7 +42,7 @@
 
 #include <stdint.h>
 
-//#include <utf8.h>
+#include "utfcpp/source/utf8.h"
 #include <boost/assign/list_of.hpp>
 
 #include <univalue.h>
@@ -3827,9 +3827,10 @@ UniValue z_viewtransaction(const UniValue& params, bool fHelp)
                 memo.rend(),
                 [](unsigned char v) { return v != 0; });
             std::string memoStr(memo.begin(), end.base());
-            //if (utf8::is_valid(memoStr)) {
-                entry.pushKV("memoStr", memoStr);   // utf8.h causes a lot of problems on Gentoo; decided to skip this validation // Ky
-            //}
+
+            if (utf8::is_valid(memoStr)) {
+                entry.pushKV("memoStr", memoStr);
+            }
         }
     };
 
@@ -4242,7 +4243,7 @@ UniValue z_sendmany(const UniValue& params, bool fHelp)
     mtx.fOverwintered = true;
     mtx.nVersionGroupId = SAPLING_VERSION_GROUP_ID;
     mtx.nVersion = SAPLING_TX_VERSION;
-    
+
     unsigned int max_tx_size = MAX_TX_SIZE_AFTER_SAPLING;
     if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ALFHEIMR)) {
         max_tx_size = MAX_TX_SIZE_AFTER_ALFHEIMR;
@@ -4610,7 +4611,7 @@ UniValue z_shieldcoinbase(const UniValue& params, bool fHelp)
     if (!NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_SAPLING)) {
         max_tx_size = MAX_TX_SIZE_BEFORE_SAPLING;
     }
-    
+
     if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ALFHEIMR)) {
         max_tx_size = MAX_TX_SIZE_AFTER_ALFHEIMR;
     }
