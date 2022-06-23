@@ -1,14 +1,14 @@
 package=native_rust
-$(package)_version=1.57.0
+$(package)_version=1.61.0
 $(package)_download_path=https://static.rust-lang.org/dist
 $(package)_file_name_linux=rust-$($(package)_version)-x86_64-unknown-linux-gnu.tar.gz
-$(package)_sha256_hash_linux=ea0253784b2e5c22659ff148d492a68d2e11da734491714ebc61cc93896efcda
+$(package)_sha256_hash_linux=066b324239d30787ce64142d7e04912f2e1850c07db3b2354d8654e02ff8b23a
 $(package)_file_name_darwin=rust-$($(package)_version)-x86_64-apple-darwin.tar.gz
-$(package)_sha256_hash_darwin=15ceffc4743434c19d08f73fb4edd6642b7fd8162ed7101d3e6ca2c691fcb699
+$(package)_sha256_hash_darwin=d851f1a473926a5d8f111ed08002047a5dc4ad944a5b7f8d5d2f1f266b51e66a
 $(package)_file_name_freebsd=rust-$($(package)_version)-x86_64-unknown-freebsd.tar.gz
-$(package)_sha256_hash_freebsd=ebe96fa1f15e8d70c91e81aab7e0c341717b909225029f37d52fbdfa506e3fab
+$(package)_sha256_hash_freebsd=fc025538a1f429f66e0a6b2108cfc1b5167e6742cabb573bee5841ad5929b077
 $(package)_file_name_aarch64_linux=rust-$($(package)_version)-aarch64-unknown-linux-gnu.tar.gz
-$(package)_sha256_hash_aarch64_linux=d66847f7cf7b548ecb328c400ac4f691ee2aea6ff5cd9286ad8733239569556c
+$(package)_sha256_hash_aarch64_linux=261cd47bc3c98c9f97b601d1ad2a7d9b33c9ea63c9a351119c2f6d4e82f5d436
 
 # Mapping from GCC canonical hosts to Rust targets
 # If a mapping is not present, we assume they are identical, unless $host_os is
@@ -17,6 +17,7 @@ $(package)_rust_target_x86_64-pc-linux-gnu=x86_64-unknown-linux-gnu
 $(package)_rust_target_x86_64-w64-mingw32=x86_64-pc-windows-gnu
 
 # Mapping from Rust targets to SHA-256 hashes
+$(package)_rust_std_sha256_hash_aarch64-linux-android=458d365f6be2764dc04185928427292c348271ffb2d653a2219603877183d564
 $(package)_rust_std_sha256_hash_aarch64-unknown-linux-gnu=4c70901d1cbddec9ea99fbd62b20f454d30e1ffbb48a21169ac823b3f02a1fbc
 $(package)_rust_std_sha256_hash_x86_64-apple-darwin=c1eb892ddb50ebeed288b7aa8171ad46d62362bb26b2d82d2b463dfd45606dc2
 $(package)_rust_std_sha256_hash_x86_64-pc-windows-gnu=75c910899ed36a90b155e3a01c21b863000675867efc56f2b68c44edd4b7e18c
