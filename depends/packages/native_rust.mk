@@ -17,11 +17,11 @@ $(package)_rust_target_x86_64-pc-linux-gnu=x86_64-unknown-linux-gnu
 $(package)_rust_target_x86_64-w64-mingw32=x86_64-pc-windows-gnu
 
 # Mapping from Rust targets to SHA-256 hashes
-$(package)_rust_std_sha256_hash_aarch64-linux-android=458d365f6be2764dc04185928427292c348271ffb2d653a2219603877183d564
-$(package)_rust_std_sha256_hash_aarch64-unknown-linux-gnu=4c70901d1cbddec9ea99fbd62b20f454d30e1ffbb48a21169ac823b3f02a1fbc
-$(package)_rust_std_sha256_hash_x86_64-apple-darwin=c1eb892ddb50ebeed288b7aa8171ad46d62362bb26b2d82d2b463dfd45606dc2
-$(package)_rust_std_sha256_hash_x86_64-pc-windows-gnu=75c910899ed36a90b155e3a01c21b863000675867efc56f2b68c44edd4b7e18c
-$(package)_rust_std_sha256_hash_x86_64-unknown-freebsd=1528a4bc7e3ba42da164bcc7b952dfa73048333c5b9254ce2d03db6bab6081e8
+$(package)_rust_std_sha256_hash_aarch64-linux-android=bfb22b8ac72d1963c269083fdb02b8d336b68970f1634d076d9de9201c40ddf3
+$(package)_rust_std_sha256_hash_aarch64-unknown-linux-gnu=2cc8cfc5cc60e0c6a473bb609b54251c561d8d12a986fda8a7ca86dc1d36b4df
+$(package)_rust_std_sha256_hash_x86_64-apple-darwin=cbd76787224916cd16c11b9b0d506a479413b6384525fb5c3bdd92fe5b2c0806
+$(package)_rust_std_sha256_hash_x86_64-pc-windows-gnu=46b691e9c63c406cd7903ff4d45b9e5b5a34e5c4bdb4b58599822e2437d6d71f
+$(package)_rust_std_sha256_hash_x86_64-unknown-freebsd=2ab4e71a0e0f65fa41df203073e7dbd67368e6e774ef2cf01b3a77b3d001478b
 
 define rust_target
 $(if $($(1)_rust_target_$(2)),$($(1)_rust_target_$(2)),$(if $(findstring darwin,$(3)),x86_64-apple-darwin,$(if $(findstring freebsd,$(3)),x86_64-unknown-freebsd,$(2))))
