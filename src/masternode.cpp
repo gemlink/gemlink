@@ -147,6 +147,11 @@ bool CMasternode::UpdateFromNewBroadcast(CMasternodeBroadcast& mnb)
         addr = mnb.addr;
         lastTimeChecked = 0;
         int nDoS = 0;
+        if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+            if (IsEnabled() || IsUnlocking() || IsReEnabled()) {
+                activeState = MASTERNODE_RE_ENABLED;
+            }
+        }
         if (mnb.lastPing.IsNull() || (!mnb.lastPing.IsNull() && mnb.lastPing.CheckAndUpdate(nDoS, false))) {
             lastPing = mnb.lastPing;
             mnodeman.mapSeenMasternodePing.insert(make_pair(lastPing.GetHash(), lastPing));
@@ -204,18 +209,27 @@ void CMasternode::Check(bool forceCheck)
         return;
 
 
-    if (!IsPingedWithin(MASTERNODE_REMOVAL_SECONDS)) {
+    if (!IsPingedWithin(GetRemovalTime())) {
         activeState = MASTERNODE_REMOVE;
         return;
     }
 
-    if (!IsPingedWithin(MASTERNODE_EXPIRATION_SECONDS)) {
+    if (!IsPingedWithin(GetExpirationTime())) {
         activeState = MASTERNODE_EXPIRED;
         return;
     }
 
+    bool isXandarActive = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
+    // ifit's active, move it to unlocking state
+    if (!IsPingedWithin(Params().GetConsensus().GetMnStartUnlockTime()) && true == isXandarActive) {
+        activeState = MASTERNODE_UNLOCKING;
+        return;
+    }
+
     if (lastPing.sigTime - sigTime < MASTERNODE_MIN_MNP_SECONDS) {
-        activeState = MASTERNODE_PRE_ENABLED;
+        if (isXandarActive == false || (true == isXandarActive && activeState != MASTERNODE_RE_ENABLED)) {
+            activeState = MASTERNODE_PRE_ENABLED;
+        }
         return;
     }
 
@@ -232,7 +246,8 @@ void CMasternode::Check(bool forceCheck)
         tx.vout.push_back(vout);
         {
             TRY_LOCK(cs_main, lockMain);
-            if (!lockMain) return;
+            if (!lockMain)
+                return;
 
             if (!AcceptableInputs(mempool, state, CTransaction(tx), false, NULL)) {
                 activeState = MASTERNODE_VIN_SPENT;
@@ -330,6 +345,24 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
     }
 
     return false;
+}
+
+int CMasternode::GetExpirationTime()
+{
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        return MASTERNODE_EXPIRATION_SECONDS + Params().GetConsensus().GetMnLockTime();
+    } else {
+        return MASTERNODE_EXPIRATION_SECONDS;
+    }
+}
+
+int CMasternode::GetRemovalTime()
+{
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        return MASTERNODE_REMOVAL_SECONDS + Params().GetConsensus().GetMnLockTime();
+    } else {
+        return MASTERNODE_REMOVAL_SECONDS;
+    }
 }
 
 CMasternodeBroadcast::CMasternodeBroadcast() : CMasternode()

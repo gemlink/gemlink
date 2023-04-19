@@ -6,8 +6,8 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
-#include "uint256.h"
 #include "key_constants.h"
+#include "uint256.h"
 #include <boost/optional.hpp>
 #include <optional>
 int32_t MAX_BLOCK_SIZE(int32_t height);
@@ -34,6 +34,7 @@ enum UpgradeIndex {
     UPGRADE_WAKANDA,
     UPGRADE_ATLANTIS,
     UPGRADE_MORAG,
+    UPGRADE_XANDAR,
     // NOTE: Also add new upgrades to NetworkUpgradeInfo in upgrades.cpp
     MAX_NETWORK_UPGRADES
 };
@@ -161,6 +162,8 @@ struct Params {
     EHparameters eh_epoch_2 = eh144_5;
     unsigned int eh_epoch_1_endtime = 0;   // it's time, not height
     unsigned int eh_epoch_2_starttime = 0; // it's time, not height
+    int mnLockTime;
+    int mnStartUnlockTime;
 
     int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * nPowTargetSpacing; }
     int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp)) / 100; }
@@ -171,6 +174,15 @@ struct Params {
     unsigned int eh_epoch_2_start() const { return eh_epoch_2_starttime; }
     bool NetworkUpgradeActive(int nHeight, Consensus::UpgradeIndex idx) const;
     int validEHparameterList(EHparameters* ehparams, unsigned int blocktime) const;
+    int GetMnLockTime() const
+    {
+        return mnLockTime;
+    }
+
+    int GetMnStartUnlockTime() const
+    {
+        return mnStartUnlockTime;
+    }
     uint256 nMinimumChainWork;
 
     /** Parameters for LWMA3 **/

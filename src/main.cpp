@@ -979,6 +979,7 @@ bool ContextualCheckTransaction(
     bool saplingActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_SAPLING);
     bool atlantisActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS);
     bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
+    bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -1062,6 +1063,22 @@ bool ContextualCheckTransaction(
             // Don't increase banscore if the transaction only just expired
             int expiredDosLevel = IsExpiredTx(tx, nHeight - 1) ? dosLevel : 0;
             return state.DoS(expiredDosLevel, error("ContextualCheckTransaction(): transaction is expired"), REJECT_INVALID, "tx-overwinter-expired");
+        }
+    }
+
+    if (xandarActive) {
+        for (const CTxIn vin : tx.vin) {
+            CMasternode* pmn;
+            pmn = mnodeman.Find(vin);
+            if (pmn != NULL) {
+                int64_t sec = (GetAdjustedTime() - pmn->GetLastPaid());
+                // do not add to mempool enable or unlocking
+                if (pmn->IsEnabled() || pmn->IsReEnabled() || (pmn->IsUnlocking() && sec < chainparams.GetConsensus().GetMnLockTime())) {
+                    LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
+                    return state.DoS(dosLevel, error("ContextualCheckTransaction(): size limits failed"),
+                                     REJECT_INVALID, "bad-txns-oversize");
+                }
+            }
         }
     }
 
@@ -2154,15 +2171,15 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
         }
     } else {
         if (nHeight > nMNPSBlock)
-            ret = 7 * COIN; // > 193200 - 35.0%
+            ret = 7 * COIN;  // > 193200 - 35.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 1))
-            ret = 8 * COIN; // > 236400 - 40.0%
+            ret = 8 * COIN;  // > 236400 - 40.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 2))
-            ret = 9 * COIN; // > 279600 - 45.0%
+            ret = 9 * COIN;  // > 279600 - 45.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 3))
             ret = 10 * COIN; // > 322800 - 50.0%
         if (nHeight > nMNPaymentChange)
-            ret = 9 * COIN; // 45%
+            ret = 9 * COIN;  // 45%
         if (nHeight >= nMNPaymentDIFA)
             ret = 925 * COIN / 100;
     }
@@ -3674,9 +3691,9 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     static_assert(MAX_REORG_LENGTH > 0, "We must be able to reorg some distance");
     if (reorgLength > MAX_REORG_LENGTH && masternodeSync.IsSynced()) {
         auto msg = strprintf(
-                                 "A block chain reorganization has been detected that would roll back %d blocks! "
-                                 "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
-                             reorgLength, MAX_REORG_LENGTH) +
+                       "A block chain reorganization has been detected that would roll back %d blocks! "
+                       "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
+                       reorgLength, MAX_REORG_LENGTH) +
                    "\n\n" +
                    "Reorganization details :\n" +
                    "- " + strprintf("Current tip: %s, height %d, work %s", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
@@ -4529,7 +4546,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     // and unrequested blocks.
     if (fAlreadyHave)
         return true;
-    if (!fRequested) { // If we didn't ask for it:
+    if (!fRequested) {   // If we didn't ask for it:
         if (pindex->nTx != 0)
             return true; // This is a previously-processed block that was pruned
         if (!fHasMoreWork)
@@ -5144,9 +5161,9 @@ bool RewindBlockIndex(const CChainParams& params, bool& clearWitnessCaches)
             auto pindexOldTip = chainActive.Tip();
             auto pindexRewind = chainActive[nHeight - 1];
             auto msg = strprintf(
-                                     "A block chain rewind has been detected that would roll back %d blocks! "
-                                     "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
-                                 rewindLength, MAX_REORG_LENGTH) +
+                           "A block chain rewind has been detected that would roll back %d blocks! "
+                           "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
+                           rewindLength, MAX_REORG_LENGTH) +
                        "\n\n" +
                        _("Rewind details") + ":\n" +
                        "- " + strprintf("Current tip:   %s, height %d", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
@@ -5523,18 +5540,18 @@ void static CheckBlockIndex()
             assert(pindex->nStatus & BLOCK_HAVE_DATA);
         assert(((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS) == (pindex->nTx > 0)); // This is pruning-independent.
         // All parents having had data (at some point) is equivalent to all parents being VALID_TRANSACTIONS, which is equivalent to nChainTx being set.
-        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0)); // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
+        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0));           // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
         assert((pindexFirstNotTransactionsValid != NULL) == (pindex->nChainTx == 0));
         assert(pindex->nHeight == nHeight);                                               // nHeight must be consistent.
         assert(pindex->pprev == NULL || pindex->nChainWork >= pindex->pprev->nChainWork); // For every block except the genesis block, the chainwork must be larger than the parent's.
         assert(nHeight < 2 || (pindex->pskip && (pindex->pskip->nHeight < nHeight)));     // The pskip pointer must point back for all but the first 2 blocks.
         assert(pindexFirstNotTreeValid == NULL);                                          // All mapBlockIndex entries must at least be TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TREE)
-            assert(pindexFirstNotTreeValid == NULL); // TREE valid implies all parents are TREE valid
+            assert(pindexFirstNotTreeValid == NULL);                                      // TREE valid implies all parents are TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_CHAIN)
-            assert(pindexFirstNotChainValid == NULL); // CHAIN valid implies all parents are CHAIN valid
+            assert(pindexFirstNotChainValid == NULL);                                     // CHAIN valid implies all parents are CHAIN valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_SCRIPTS)
-            assert(pindexFirstNotScriptsValid == NULL); // SCRIPTS valid implies all parents are SCRIPTS valid
+            assert(pindexFirstNotScriptsValid == NULL);                                   // SCRIPTS valid implies all parents are SCRIPTS valid
         if (pindexFirstInvalid == NULL) {
             // Checks for not-invalid blocks.
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.
@@ -5997,7 +6014,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         const Consensus::Params& params = Params().GetConsensus();
         auto currentEpoch = CurrentEpoch(GetHeight(), params);
         if (pfrom->nVersion < params.vUpgrades[currentEpoch].nProtocolVersion) {
-            LogPrint("masternode","peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrint("masternode", "peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater",
                                          params.vUpgrades[currentEpoch].nProtocolVersion));
@@ -6119,7 +6136,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
     // 1. The version message has been received
     // 2. Peer version is below the minimum version for the current epoch
     else if (pfrom->nVersion < chainparams.GetConsensus().vUpgrades[CurrentEpoch(GetHeight(), chainparams.GetConsensus())].nProtocolVersion) {
-        LogPrint("masternode","peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+        LogPrint("masternode", "peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
         pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                            strprintf("Version must be %d or greater",
                                      chainparams.GetConsensus().vUpgrades[CurrentEpoch(GetHeight(), chainparams.GetConsensus())].nProtocolVersion));

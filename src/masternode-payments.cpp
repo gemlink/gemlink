@@ -456,6 +456,8 @@ int CMasternodePayments::GetMinMasternodePaymentsProto()
     }
     if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
         minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
+    } else if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_XANDAR;
     }
     return minPeer;
 }
@@ -471,7 +473,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
 
     if (strCommand == "mnget") { // Masternode Payments Request Sync
         if (fLiteMode)
-            return; // disable all Obfuscation/Masternode related functionality
+            return;              // disable all Obfuscation/Masternode related functionality
 
         int nCountNeeded;
         vRecv >> nCountNeeded;

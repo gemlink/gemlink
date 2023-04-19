@@ -20,6 +20,7 @@
 #define MASTERNODE_MIN_MNP_SECONDS (10 * 60)
 #define MASTERNODE_MIN_MNB_SECONDS (5 * 60)
 #define MASTERNODE_PING_SECONDS (5 * 60)
+#define MASTERNODE_UNLOCKING_SECONDS (120 * 60)
 #define MASTERNODE_EXPIRATION_SECONDS (120 * 60)
 #define MASTERNODE_REMOVAL_SECONDS (130 * 60)
 #define MASTERNODE_CHECK_SECONDS 5
@@ -124,7 +125,9 @@ private:
 public:
     enum state {
         MASTERNODE_PRE_ENABLED,
+        MASTERNODE_RE_ENABLED, // re-enable state for a masternode when user start again mn from active/unlock state
         MASTERNODE_ENABLED,
+        MASTERNODE_UNLOCKING,
         MASTERNODE_EXPIRED,
         MASTERNODE_REMOVE,
         MASTERNODE_WATCHDOG_EXPIRED,
@@ -241,6 +244,9 @@ public:
         return lastPing.IsNull() ? false : now - lastPing.sigTime < seconds;
     }
 
+    int GetExpirationTime();
+    int GetRemovalTime();
+
     void SetSpent() { fCollateralSpent = true; }
 
     void Disable()
@@ -262,7 +268,17 @@ public:
 
     bool IsAvailableState() const
     {
-        return activeState == MASTERNODE_ENABLED || activeState == MASTERNODE_PRE_ENABLED;
+        return activeState == MASTERNODE_ENABLED || activeState == MASTERNODE_PRE_ENABLED || activeState == MASTERNODE_RE_ENABLED;
+    }
+
+    bool IsReEnabled() const
+    {
+        return activeState == MASTERNODE_RE_ENABLED;
+    }
+
+    bool IsUnlocking() const
+    {
+        return activeState == MASTERNODE_UNLOCKING;
     }
 
     std::string Status()
@@ -270,13 +286,24 @@ public:
         std::string strStatus = "ACTIVE";
 
         LOCK(cs);
-        if (activeState == CMasternode::MASTERNODE_PRE_ENABLED) strStatus = "PRE_ENABLED";
-        if (activeState == CMasternode::MASTERNODE_ENABLED) strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_EXPIRED) strStatus = "EXPIRED";
-        if (activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
-        if (activeState == CMasternode::MASTERNODE_REMOVE) strStatus = "REMOVE";
-        if (activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
-        if (activeState == CMasternode::MASTERNODE_MISSING) strStatus = "MISSING";
+        if (activeState == CMasternode::MASTERNODE_PRE_ENABLED)
+            strStatus = "PRE_ENABLED";
+        if (activeState == CMasternode::MASTERNODE_RE_ENABLED)
+            strStatus = "RE_ENABLED";
+        if (activeState == CMasternode::MASTERNODE_ENABLED)
+            strStatus = "ENABLED";
+        if (activeState == CMasternode::MASTERNODE_UNLOCKING)
+            strStatus = "UNLOCKING";
+        if (activeState == CMasternode::MASTERNODE_EXPIRED)
+            strStatus = "EXPIRED";
+        if (activeState == CMasternode::MASTERNODE_VIN_SPENT)
+            strStatus = "VIN_SPENT";
+        if (activeState == CMasternode::MASTERNODE_REMOVE)
+            strStatus = "REMOVE";
+        if (activeState == CMasternode::MASTERNODE_POS_ERROR)
+            strStatus = "POS_ERROR";
+        if (activeState == CMasternode::MASTERNODE_MISSING)
+            strStatus = "MISSING";
 
         return strStatus;
     }

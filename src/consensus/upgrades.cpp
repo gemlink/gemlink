@@ -57,7 +57,12 @@ const struct NUInfo NetworkUpgradeInfo[Consensus::MAX_NETWORK_UPGRADES] = {
     {
         /*.nBranchId =*/0x76b809bb,
         /*.strName =*/"Morag",
-        /*.strInfo =*/"Dropping private transactions",
+        /*.strInfo =*/"Gemlink",
+    },
+    {
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Xandar",
+        /*.strInfo =*/"Locking mn funds",
     }};
 
 const uint32_t SPROUT_BRANCH_ID = NetworkUpgradeInfo[Consensus::BASE_SPROUT].nBranchId;
@@ -114,7 +119,8 @@ uint32_t CurrentEpochBranchId(int nHeight, const Consensus::Params& params)
 }
 
 
-uint32_t PrevEpochBranchId(uint32_t currentBranchId, const Consensus::Params& params) {
+uint32_t PrevEpochBranchId(uint32_t currentBranchId, const Consensus::Params& params)
+{
     for (int idx = Consensus::BASE_SPROUT + 1; idx < Consensus::MAX_NETWORK_UPGRADES; idx++) {
         if (currentBranchId == NetworkUpgradeInfo[idx].nBranchId) {
             return NetworkUpgradeInfo[idx - 1].nBranchId;
