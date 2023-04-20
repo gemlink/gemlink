@@ -360,7 +360,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 77780;
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 3167200; // 2022, Feb 14
+        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 81079; // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
