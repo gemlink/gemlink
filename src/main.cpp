@@ -1075,8 +1075,8 @@ bool ContextualCheckTransaction(
                 // do not add to mempool enable or unlocking
                 if (pmn->IsEnabled() || pmn->IsReEnabled() || (pmn->IsUnlocking() && sec < chainparams.GetConsensus().GetMnLockTime())) {
                     LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                    return state.DoS(dosLevel, error("ContextualCheckTransaction(): size limits failed"),
-                                     REJECT_INVALID, "bad-txns-oversize");
+                    return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
+                                     REJECT_INVALID, "bad-txns-lock");
                 }
             }
         }
