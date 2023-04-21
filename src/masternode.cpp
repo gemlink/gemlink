@@ -239,9 +239,9 @@ void CMasternode::Check(bool forceCheck)
         CScript dummyScript;
         dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
 
-        CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) - 0.01 * COIN, dummyScript);
+        CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (int)(0.01 * COIN), dummyScript);
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-            vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) - 0.01 * COIN, dummyScript);
+            vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (int)(0.01 * COIN), dummyScript);
         }
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
