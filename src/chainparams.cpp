@@ -140,8 +140,6 @@ public:
         // eh_epoch_2_startblock = 265983;
         consensus.eh_epoch_1_endtime = 1530187171;
         consensus.eh_epoch_2_starttime = 1530187141;
-        consensus.mnLockTime = 14 * 86400;
-        consensus.mnStartUnlockTime = 120 * 60;
         nMasternodeCountDrift = 0;
 
         genesis = CreateGenesisBlock(
@@ -307,6 +305,8 @@ public:
         masternodeProtectionBlock = 590000;
         masternodeCollateral = 10000;
         masternodeCollateralNew = 20000;
+        mnLockTime = 14 * 86400;
+        mnStartUnlockTime = 120 * 60;
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 };
@@ -381,8 +381,6 @@ public:
         consensus.eh_epoch_2 = Consensus::eh144_5;
         consensus.eh_epoch_1_endtime = 1529432082;
         consensus.eh_epoch_2_starttime = 1529402266;
-        consensus.mnLockTime = 15 * 60;
-        consensus.mnStartUnlockTime = 5 * 60;
         // eh_epoch_1_endblock = 7600;
         // eh_epoch_2_startblock = 7583;
 
@@ -460,6 +458,8 @@ public:
         masternodeProtectionBlock = 7900;
         masternodeCollateral = 10;
         masternodeCollateralNew = 20;
+        mnLockTime = 25 * 60;
+        mnStartUnlockTime = 15 * 60;
     }
 };
 static CTestNetParams testNetParams;
@@ -517,8 +517,7 @@ public:
         consensus.eh_epoch_2 = Consensus::eh48_5;
         consensus.eh_epoch_1_endtime = 1;
         consensus.eh_epoch_2_starttime = 1;
-        consensus.mnLockTime = 60;
-        consensus.mnStartUnlockTime = 30;
+
         genesis = CreateGenesisBlock(
             1296688602,
             uint256S("000000000000000000000000000000000000000000000000000000000000000c"),
@@ -565,6 +564,9 @@ public:
         vTreasuryRewardAddress = {"t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
         vDevelopersRewardAddress = {
             "t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
+        
+        mnLockTime = 60;
+        mnStartUnlockTime = 30;
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 

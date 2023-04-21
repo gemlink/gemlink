@@ -221,7 +221,7 @@ void CMasternode::Check(bool forceCheck)
 
     bool isXandarActive = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
     // ifit's active, move it to unlocking state
-    if (!IsPingedWithin(Params().GetConsensus().GetMnStartUnlockTime()) && true == isXandarActive) {
+    if (!IsPingedWithin(Params().GetMnStartUnlockTime()) && true == isXandarActive) {
         activeState = MASTERNODE_UNLOCKING;
         return;
     }
@@ -238,9 +238,10 @@ void CMasternode::Check(bool forceCheck)
         CMutableTransaction tx = CMutableTransaction();
         CScript dummyScript;
         dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
-        CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+
+        CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) - 0.01 * COIN, dummyScript);
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-            vout = CTxOut(19999.99 * COIN, dummyScript);
+            vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) - 0.01 * COIN, dummyScript);
         }
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
@@ -350,7 +351,7 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
 int CMasternode::GetExpirationTime()
 {
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        return MASTERNODE_EXPIRATION_SECONDS + Params().GetConsensus().GetMnLockTime();
+        return MASTERNODE_EXPIRATION_SECONDS + Params().GetMnLockTime();
     } else {
         return MASTERNODE_EXPIRATION_SECONDS;
     }
@@ -359,7 +360,7 @@ int CMasternode::GetExpirationTime()
 int CMasternode::GetRemovalTime()
 {
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        return MASTERNODE_REMOVAL_SECONDS + Params().GetConsensus().GetMnLockTime();
+        return MASTERNODE_REMOVAL_SECONDS + Params().GetMnLockTime();
     } else {
         return MASTERNODE_REMOVAL_SECONDS;
     }

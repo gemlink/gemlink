@@ -162,8 +162,6 @@ struct Params {
     EHparameters eh_epoch_2 = eh144_5;
     unsigned int eh_epoch_1_endtime = 0;   // it's time, not height
     unsigned int eh_epoch_2_starttime = 0; // it's time, not height
-    int mnLockTime;
-    int mnStartUnlockTime;
 
     int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * nPowTargetSpacing; }
     int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp)) / 100; }
@@ -174,15 +172,7 @@ struct Params {
     unsigned int eh_epoch_2_start() const { return eh_epoch_2_starttime; }
     bool NetworkUpgradeActive(int nHeight, Consensus::UpgradeIndex idx) const;
     int validEHparameterList(EHparameters* ehparams, unsigned int blocktime) const;
-    int GetMnLockTime() const
-    {
-        return mnLockTime;
-    }
 
-    int GetMnStartUnlockTime() const
-    {
-        return mnStartUnlockTime;
-    }
     uint256 nMinimumChainWork;
 
     /** Parameters for LWMA3 **/

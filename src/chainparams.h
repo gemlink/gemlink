@@ -36,7 +36,8 @@ struct CCheckpointData {
 };
 
 
-class CBaseKeyConstants : public KeyConstants {
+class CBaseKeyConstants : public KeyConstants
+{
 public:
     std::string NetworkIDString() const { return strNetworkID; }
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
@@ -54,10 +55,9 @@ public:
  * a regression test mode which is intended for private networks only. It has
  * minimal difficulty to ensure that blocks can be found instantly.
  */
-class CChainParams: public KeyConstants 
+class CChainParams : public KeyConstants
 {
 public:
-
     const Consensus::Params& GetConsensus() const { return consensus; }
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
@@ -125,6 +125,16 @@ public:
         }
     }
 
+    int GetMnLockTime() const
+    {
+        return mnLockTime;
+    }
+
+    int GetMnStartUnlockTime() const
+    {
+        return mnStartUnlockTime;
+    }
+
 protected:
     CChainParams() {}
 
@@ -164,6 +174,9 @@ protected:
     int masternodeProtectionBlock;
     int masternodeCollateral;
     int masternodeCollateralNew;
+
+    int mnLockTime;
+    int mnStartUnlockTime;
 };
 
 /**

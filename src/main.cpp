@@ -1073,7 +1073,7 @@ bool ContextualCheckTransaction(
             if (pmn != NULL) {
                 int64_t sec = (GetAdjustedTime() - pmn->GetLastPaid());
                 // do not add to mempool enable or unlocking
-                if (pmn->IsEnabled() || pmn->IsReEnabled() || (pmn->IsUnlocking() && sec < chainparams.GetConsensus().GetMnLockTime())) {
+                if (pmn->IsEnabled() || pmn->IsReEnabled() || (pmn->IsUnlocking() && sec < chainparams.GetMnLockTime())) {
                     LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
                     return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
                                      REJECT_INVALID, "bad-txns-lock");

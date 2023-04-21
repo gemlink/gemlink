@@ -277,7 +277,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
             activeState == CMasternode::MASTERNODE_VIN_SPENT ||
             (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED) ||
             (*it).protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
-            LogPrint("masternode", "CMasternodeMan: Removing inactive Masternode %s - %i now\n", (*it).vin.prevout.hash.ToString(), size() - 1);
+            LogPrint("masternode", "CMasternodeMan: Removing inactive Masternode %s - %i activeState %inow\n", (*it).vin.prevout.hash.ToString(), size() - 1, activeState);
 
             // erase all of the broadcasts we've seen from this vin
             //  -- if we missed a few pings and the node was removed, this will allow is to get it back without them
