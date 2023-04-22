@@ -221,7 +221,7 @@ void CMasternode::Check(bool forceCheck)
 
     bool isXandarActive = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
     // ifit's active, move it to unlocking state
-    if (!IsPingedWithin(Params().GetMnStartUnlockTime()) && true == isXandarActive) {
+    if (!IsPingedWithin(Params().GetMnStartUnlockTime()) && true == isXandarActive && activeState != MASTERNODE_UNLOCKING) {
         activeState = MASTERNODE_UNLOCKING;
         return;
     }
