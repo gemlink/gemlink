@@ -568,11 +568,11 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         return false;
 
     // incorrect ping or its sigTime
-    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) {
-        if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true)) {
-            return false;
-        }
-    }
+    // if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) {
+    //     if ((lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true)) && IsEnabled()) {
+    //         return false;
+    //     }
+    // }
 
     // search existing Masternode list, this is where we update existing Masternodes with new mnb broadcasts
     CMasternode* pmn = mnodeman.Find(vin);
@@ -617,7 +617,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
         return true;
 
     // incorrect ping or its sigTime
-    if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDoS, false, true))
+    if ((lastPing.IsNull() || !lastPing.CheckAndUpdate(nDoS, false, true)) && IsEnabled())
         return false;
 
     // search existing Masternode list
