@@ -233,9 +233,10 @@ void CMasternode::Check(bool forceCheck)
         CScript dummyScript;
         dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
 
-        CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (int)(0.01 * COIN), dummyScript);
+        CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN), dummyScript);
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-            vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (int)(0.01 * COIN), dummyScript);
+            CAmount testingAmount = Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN);
+            vout = CTxOut(testingAmount, dummyScript);
         }
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
@@ -589,7 +590,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     }
 
     // masternode is not enabled yet/already, nothing to update
-    if (!pmn->IsEnabled())
+    if (!pmn->IsEnabled() && !pmn->IsUnlocking())
         return true;
 
     // mn.pubkey = pubkey, IsVinAssociatedWithPubkey is validated once below,
@@ -599,7 +600,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         LogPrint("masternode", "mnb - Got updated entry for %s\n", vin.prevout.hash.ToString());
         if (pmn->UpdateFromNewBroadcast((*this))) {
             pmn->Check();
-            if (pmn->IsEnabled())
+            if (pmn->IsEnabled() || pmn->IsUnlocking())
                 Relay();
         }
         masternodeSync.AddedMasternodeList(GetHash());
@@ -624,7 +625,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 
     if (pmn != NULL) {
         // nothing to do here if we already know about this masternode and it's enabled
-        if (pmn->IsEnabled())
+        if (pmn->IsEnabled() || pmn->IsUnlocking())
             return true;
         // if it's not enabled, remove old MN first and continue
         else
@@ -635,9 +636,10 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     CMutableTransaction tx = CMutableTransaction();
     CScript dummyScript;
     dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
-    CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+    CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN), dummyScript);
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-        vout = CTxOut(19999.99 * COIN, dummyScript);
+        CAmount testingAmount = Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN);
+        vout = CTxOut(testingAmount, dummyScript);
     }
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
