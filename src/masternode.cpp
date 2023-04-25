@@ -243,6 +243,16 @@ void CMasternode::Check(bool forceCheck)
         }
     }
 
+    bool isXandarActive = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
+    // ifit's active, move it to unlocking state
+    if (true == isXandarActive && !IsPingedWithin(Params().GetMnStartUnlockTime()) && activeState != MASTERNODE_UNLOCKING) {
+        activeState = MASTERNODE_UNLOCKING;
+        return;
+    }
+
+    if (activeState == MASTERNODE_UNLOCKING)
+        return;
+
     activeState = MASTERNODE_ENABLED; // OK
 }
 
