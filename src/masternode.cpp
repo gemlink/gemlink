@@ -567,19 +567,19 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     } else if (addr.GetPort() == 16113)
         return false;
 
-    // incorrect ping or its sigTime
-    // if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) {
-    //     if ((lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true)) && IsEnabled()) {
-    //         return false;
-    //     }
-    // }
-
     // search existing Masternode list, this is where we update existing Masternodes with new mnb broadcasts
     CMasternode* pmn = mnodeman.Find(vin);
 
     // no such masternode, nothing to update
     if (pmn == NULL)
         return true;
+
+    // incorrect ping or its sigTime
+    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) {
+        if ((pmn->lastPing.IsNull() || !pmn->lastPing.CheckAndUpdate(nDos, false, true)) && pmn->IsEnabled()) {
+            return false;
+        }
+    }
 
     // this broadcast is older or equal than the one that we already have - it's bad and should never happen
     // unless someone is doing something fishy
@@ -590,7 +590,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     }
 
     // masternode is not enabled yet/already, nothing to update
-    if (!pmn->IsEnabled() && !pmn->IsUnlocking())
+    if (!pmn->IsEnabled() && !pmn->IsUnlocking() && !pmn->IsReEnabled())
         return true;
 
     // mn.pubkey = pubkey, IsVinAssociatedWithPubkey is validated once below,
@@ -600,7 +600,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         LogPrint("masternode", "mnb - Got updated entry for %s\n", vin.prevout.hash.ToString());
         if (pmn->UpdateFromNewBroadcast((*this))) {
             pmn->Check();
-            if (pmn->IsEnabled() || pmn->IsUnlocking())
+            if (pmn->IsEnabled() || pmn->IsUnlocking() || pmn->IsReEnabled())
                 Relay();
         }
         masternodeSync.AddedMasternodeList(GetHash());
@@ -616,16 +616,16 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     if (fMasterNode && vin.prevout == activeMasternode.vin.prevout && pubKeyMasternode == activeMasternode.pubKeyMasternode)
         return true;
 
-    // incorrect ping or its sigTime
-    if ((lastPing.IsNull() || !lastPing.CheckAndUpdate(nDoS, false, true)) && IsEnabled())
-        return false;
-
     // search existing Masternode list
     CMasternode* pmn = mnodeman.Find(vin);
 
     if (pmn != NULL) {
+        // incorrect ping or its sigTime
+        if ((pmn->lastPing.IsNull() || !pmn->lastPing.CheckAndUpdate(nDoS, false, true)) && pmn->IsEnabled())
+            return false;
+
         // nothing to do here if we already know about this masternode and it's enabled
-        if (pmn->IsEnabled() || pmn->IsUnlocking())
+        if (pmn->IsEnabled() || pmn->IsUnlocking() || pmn->IsReEnabled())
             return true;
         // if it's not enabled, remove old MN first and continue
         else
