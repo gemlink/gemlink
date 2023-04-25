@@ -147,11 +147,6 @@ bool CMasternode::UpdateFromNewBroadcast(CMasternodeBroadcast& mnb)
         addr = mnb.addr;
         lastTimeChecked = 0;
         int nDoS = 0;
-        if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-            if (IsEnabled() || IsUnlocking() || IsReEnabled()) {
-                activeState = MASTERNODE_RE_ENABLED;
-            }
-        }
         if (mnb.lastPing.IsNull() || (!mnb.lastPing.IsNull() && mnb.lastPing.CheckAndUpdate(nDoS, false))) {
             lastPing = mnb.lastPing;
             mnodeman.mapSeenMasternodePing.insert(make_pair(lastPing.GetHash(), lastPing));
@@ -218,12 +213,8 @@ void CMasternode::Check(bool forceCheck)
         return;
     }
 
-    bool isXandarActive = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
-
     if (lastPing.sigTime - sigTime < MASTERNODE_MIN_MNP_SECONDS) {
-        if (isXandarActive == false || (true == isXandarActive && activeState != MASTERNODE_RE_ENABLED)) {
-            activeState = MASTERNODE_PRE_ENABLED;
-        }
+        activeState = MASTERNODE_PRE_ENABLED;
         return;
     }
 
@@ -251,15 +242,6 @@ void CMasternode::Check(bool forceCheck)
             }
         }
     }
-
-    // ifit's active, move it to unlocking state
-    if (true == isXandarActive && !IsPingedWithin(Params().GetMnStartUnlockTime()) && activeState != MASTERNODE_UNLOCKING) {
-        activeState = MASTERNODE_UNLOCKING;
-        return;
-    }
-
-    if (activeState == MASTERNODE_UNLOCKING)
-        return;
 
     activeState = MASTERNODE_ENABLED; // OK
 }
@@ -590,7 +572,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     }
 
     // masternode is not enabled yet/already, nothing to update
-    if (!pmn->IsEnabled() && !pmn->IsUnlocking() && !pmn->IsReEnabled())
+    if (!pmn->IsAvailableState() && !pmn->IsUnlocking())
         return true;
 
     // mn.pubkey = pubkey, IsVinAssociatedWithPubkey is validated once below,
@@ -600,7 +582,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         LogPrint("masternode", "mnb - Got updated entry for %s\n", vin.prevout.hash.ToString());
         if (pmn->UpdateFromNewBroadcast((*this))) {
             pmn->Check();
-            if (pmn->IsEnabled() || pmn->IsUnlocking() || pmn->IsReEnabled())
+            if (pmn->IsAvailableState() || pmn->IsUnlocking())
                 Relay();
         }
         masternodeSync.AddedMasternodeList(GetHash());
@@ -625,7 +607,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
             return false;
 
         // nothing to do here if we already know about this masternode and it's enabled
-        if (pmn->IsEnabled() || pmn->IsUnlocking() || pmn->IsReEnabled())
+        if (pmn->IsAvailableState() || pmn->IsUnlocking())
             return true;
         // if it's not enabled, remove old MN first and continue
         else

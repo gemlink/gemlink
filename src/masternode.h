@@ -20,7 +20,6 @@
 #define MASTERNODE_MIN_MNP_SECONDS (10 * 60)
 #define MASTERNODE_MIN_MNB_SECONDS (5 * 60)
 #define MASTERNODE_PING_SECONDS (5 * 60)
-#define MASTERNODE_UNLOCKING_SECONDS (120 * 60)
 #define MASTERNODE_EXPIRATION_SECONDS (120 * 60)
 #define MASTERNODE_REMOVAL_SECONDS (130 * 60)
 #define MASTERNODE_CHECK_SECONDS 5
@@ -125,7 +124,6 @@ private:
 public:
     enum state {
         MASTERNODE_PRE_ENABLED,
-        MASTERNODE_RE_ENABLED, // re-enable state for a masternode when user start again mn from active/unlock state
         MASTERNODE_ENABLED,
         MASTERNODE_UNLOCKING,
         MASTERNODE_EXPIRED,
@@ -268,12 +266,7 @@ public:
 
     bool IsAvailableState() const
     {
-        return activeState == MASTERNODE_ENABLED || activeState == MASTERNODE_PRE_ENABLED || activeState == MASTERNODE_RE_ENABLED;
-    }
-
-    bool IsReEnabled() const
-    {
-        return activeState == MASTERNODE_RE_ENABLED;
+        return activeState == MASTERNODE_ENABLED || activeState == MASTERNODE_PRE_ENABLED;
     }
 
     bool IsUnlocking() const
@@ -288,8 +281,6 @@ public:
         LOCK(cs);
         if (activeState == CMasternode::MASTERNODE_PRE_ENABLED)
             strStatus = "PRE_ENABLED";
-        if (activeState == CMasternode::MASTERNODE_RE_ENABLED)
-            strStatus = "RE_ENABLED";
         if (activeState == CMasternode::MASTERNODE_ENABLED)
             strStatus = "ENABLED";
         if (activeState == CMasternode::MASTERNODE_UNLOCKING)
