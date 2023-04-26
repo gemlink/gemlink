@@ -1093,7 +1093,7 @@ bool ContextualCheckTransaction(
                         if (GetLastPaymentBlock(vin, scriptPubKey, nTime)) {
                             // find last mn payment
                             int delta = chainActive.Tip()->nTime - nTime;
-                            if (delta < Params().GetMnStartUnlockTime()) {
+                            if (delta < Params().GetMnLockTime()) {
                                 LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
                                 return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
                                                  REJECT_INVALID, "bad-txns-lock");
@@ -1101,19 +1101,6 @@ bool ContextualCheckTransaction(
                         }
                     }
                 }
-                // find last payment
-
-                // CMasternode* pmn;
-                // pmn = mnodeman.Find(vin);
-                // if (pmn != NULL) {
-                //     int64_t sec = (GetAdjustedTime() - pmn->GetLastPaid());
-                //     // do not add to mempool enable or unlocking
-                //     if (pmn->IsAvailableState() || (pmn->IsUnlocking() && pmn->IsPingedWithin(pmn->GetExpirationTime() - MASTERNODE_EXPIRATION_SECONDS))) {
-                //         LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                //         return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
-                //                          REJECT_INVALID, "bad-txns-lock");
-                //     }
-                // }
             }
         }
     }
@@ -7328,15 +7315,8 @@ bool GetLastPaymentBlock(CTxIn vIn, CScript address, int& lastTime)
         return false;
     }
 
-
-    CTxDestination address1;
-    ExtractDestination(address, address1);
-    KeyIO keyIO(Params());
-
-    LogPrint("masternode", "address %s", keyIO.EncodeDestination(address1));
-
     uint32_t lastScanTime = block.GetBlockTime();
-    lastScanTime = std::max(lastScanTime, chainActive.Tip()->nTime - Params().GetMnStartUnlockTime());
+    lastScanTime = std::max(lastScanTime, chainActive.Tip()->nTime - Params().GetMnLockTime());
     int scanHeight = chainActive.Height();
 
     while (chainActive[scanHeight]->GetBlockTime() > lastScanTime) {

@@ -337,7 +337,7 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
 int CMasternode::GetExpirationTime()
 {
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        return MASTERNODE_EXPIRATION_SECONDS + Params().GetMnLockTime();
+        return Params().GetMnExpirationTime();
     } else {
         return MASTERNODE_EXPIRATION_SECONDS;
     }
@@ -346,7 +346,7 @@ int CMasternode::GetExpirationTime()
 int CMasternode::GetRemovalTime()
 {
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        return MASTERNODE_REMOVAL_SECONDS + Params().GetMnLockTime();
+        return Params().GetMnExpirationTime() + Params().GetMnLockTime();
     } else {
         return MASTERNODE_REMOVAL_SECONDS;
     }

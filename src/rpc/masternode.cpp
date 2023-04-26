@@ -130,7 +130,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
             obj.push_back(Pair("lastpaid", (int64_t)mn->GetLastPaid()));
-            obj.push_back(Pair("unlocktime", (uint64_t)(result ? ntime + Params().GetMnStartUnlockTime() : 0)));
+            obj.push_back(Pair("unlocktime", (uint64_t)(result ? ntime + Params().GetMnLockTime() : 0)));
 
             ret.push_back(obj);
         }

@@ -130,9 +130,9 @@ public:
         return mnLockTime;
     }
 
-    int GetMnStartUnlockTime() const
+    int GetMnExpirationTime() const
     {
-        return mnStartUnlockTime;
+        return mnExpirationTime;
     }
 
 protected:
@@ -176,7 +176,7 @@ protected:
     int masternodeCollateralNew;
 
     int mnLockTime;
-    int mnStartUnlockTime;
+    int mnExpirationTime;
 };
 
 /**
