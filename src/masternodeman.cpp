@@ -275,7 +275,8 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
         auto activeState = (*it).activeState;
         if (activeState == CMasternode::MASTERNODE_REMOVE ||
             activeState == CMasternode::MASTERNODE_VIN_SPENT ||
-            (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED) ||
+            // do not remove expire mn anyway
+            (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
             (*it).protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
             LogPrint("masternode", "CMasternodeMan: Removing inactive Masternode %s - %i activeState %inow\n", (*it).vin.prevout.hash.ToString(), size() - 1, activeState);
 
