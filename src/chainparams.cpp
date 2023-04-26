@@ -458,7 +458,7 @@ public:
         masternodeProtectionBlock = 7900;
         masternodeCollateral = 10;
         masternodeCollateralNew = 20;
-        mnLockTime = 25 * 60; // count from the last mn payent
+        mnLockTime = 50 * 60; // count from the last mn payent
         mnExpirationTime = 25 * 60;
     }
 };
