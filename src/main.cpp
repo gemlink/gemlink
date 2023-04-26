@@ -1068,49 +1068,53 @@ bool ContextualCheckTransaction(
     }
 
     if (xandarActive) {
-        for (const CTxIn vin : tx.vin) {
-            // check if it's mn collateral
-            uint256 hashBlock = uint256();
-            CTransaction txVin;
-            if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
-                CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
-                CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
-                bool found = false;
-                CScript scriptPubKey;
-                for (unsigned int i = 0; i < txVin.vout.size(); i++) {
-                    if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
-                        scriptPubKey = txVin.vout[i].scriptPubKey;
-                        found = true;
-                        break;
+        if (masternodeSync.IsBlockchainSynced()) {
+            for (const CTxIn vin : tx.vin) {
+                // check if it's mn collateral
+                uint256 hashBlock = uint256();
+                CTransaction txVin;
+                if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
+                    if (txVin.IsCoinBase())
+                        continue;
+                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
+                    CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
+                    bool found = false;
+                    CScript scriptPubKey;
+                    for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+                        if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
+                            scriptPubKey = txVin.vout[i].scriptPubKey;
+                            found = true;
+                            break;
+                        }
                     }
-                }
 
-                if (found) {
-                    int nTime = 0;
-                    if (GetLastPaymentBlock(vin, scriptPubKey, nTime)) {
-                        // find last mn payment
-                        int delta = chainActive.Tip()->nTime - nTime;
-                        if (delta < Params().GetMnStartUnlockTime()) {
-                            LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                            return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
-                                             REJECT_INVALID, "bad-txns-lock");
+                    if (found) {
+                        int nTime = 0;
+                        if (GetLastPaymentBlock(vin, scriptPubKey, nTime)) {
+                            // find last mn payment
+                            int delta = chainActive.Tip()->nTime - nTime;
+                            if (delta < Params().GetMnStartUnlockTime()) {
+                                LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
+                                return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
+                                                 REJECT_INVALID, "bad-txns-lock");
+                            }
                         }
                     }
                 }
-            }
-            // find last payment
+                // find last payment
 
-            // CMasternode* pmn;
-            // pmn = mnodeman.Find(vin);
-            // if (pmn != NULL) {
-            //     int64_t sec = (GetAdjustedTime() - pmn->GetLastPaid());
-            //     // do not add to mempool enable or unlocking
-            //     if (pmn->IsAvailableState() || (pmn->IsUnlocking() && pmn->IsPingedWithin(pmn->GetExpirationTime() - MASTERNODE_EXPIRATION_SECONDS))) {
-            //         LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-            //         return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
-            //                          REJECT_INVALID, "bad-txns-lock");
-            //     }
-            // }
+                // CMasternode* pmn;
+                // pmn = mnodeman.Find(vin);
+                // if (pmn != NULL) {
+                //     int64_t sec = (GetAdjustedTime() - pmn->GetLastPaid());
+                //     // do not add to mempool enable or unlocking
+                //     if (pmn->IsAvailableState() || (pmn->IsUnlocking() && pmn->IsPingedWithin(pmn->GetExpirationTime() - MASTERNODE_EXPIRATION_SECONDS))) {
+                //         LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
+                //         return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
+                //                          REJECT_INVALID, "bad-txns-lock");
+                //     }
+                // }
+            }
         }
     }
 
