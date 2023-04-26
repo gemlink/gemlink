@@ -210,7 +210,7 @@ bool CMasternodeMan::Add(CMasternode& mn)
 {
     LOCK(cs);
 
-    if (!mn.IsAvailableState() && !mn.IsUnlocking())
+    if (!mn.IsAvailableState() && !mn.IsExpiring())
         return false;
 
     CMasternode* pmn = Find(mn.vin);
@@ -808,7 +808,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             if (mn.addr.IsRFC1918())
                 continue; // local network
 
-            if (mn.IsAvailableState() || mn.IsUnlocking()) {
+            if (mn.IsAvailableState() || mn.IsExpiring()) {
                 LogPrint("masternode", "dseg - Sending Masternode entry - %s \n", mn.vin.prevout.hash.ToString());
                 if (vin == CTxIn() || vin == mn.vin) {
                     CMasternodeBroadcast mnb = CMasternodeBroadcast(mn);
@@ -937,7 +937,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     }
                     pmn->nLastDsee = sigTime;
                     pmn->Check();
-                    if (pmn->IsAvailableState() || pmn->IsUnlocking()) {
+                    if (pmn->IsAvailableState() || pmn->IsExpiring()) {
                         TRY_LOCK(cs_vNodes, lockNodes);
                         if (!lockNodes)
                             return;
@@ -1036,7 +1036,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 LogPrint("masternode", "dsee - Accepted OLD Masternode entry %i %i\n", count, current);
                 Add(mn);
             }
-            if (mn.IsAvailableState() || mn.IsUnlocking()) {
+            if (mn.IsAvailableState() || mn.IsExpiring()) {
                 TRY_LOCK(cs_vNodes, lockNodes);
                 if (!lockNodes)
                     return;
@@ -1110,7 +1110,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     pmn->lastPing = CMasternodePing(vin);
                 pmn->nLastDseep = sigTime;
                 pmn->Check();
-                if (pmn->IsAvailableState() || pmn->IsUnlocking()) {
+                if (pmn->IsAvailableState() || pmn->IsExpiring()) {
                     TRY_LOCK(cs_vNodes, lockNodes);
                     if (!lockNodes)
                         return;

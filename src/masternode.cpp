@@ -243,16 +243,6 @@ void CMasternode::Check(bool forceCheck)
         }
     }
 
-    bool isXandarActive = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
-    // ifit's active, move it to unlocking state
-    if (true == isXandarActive && !IsPingedWithin(Params().GetMnStartUnlockTime()) && activeState != MASTERNODE_UNLOCKING) {
-        activeState = MASTERNODE_UNLOCKING;
-        return;
-    }
-
-    if (activeState == MASTERNODE_UNLOCKING)
-        return;
-
     activeState = MASTERNODE_ENABLED; // OK
 }
 
@@ -582,7 +572,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     }
 
     // masternode is not enabled yet/already, nothing to update
-    if (!pmn->IsAvailableState() && !pmn->IsUnlocking())
+    if (!pmn->IsAvailableState() && !pmn->IsExpiring())
         return true;
 
     // mn.pubkey = pubkey, IsVinAssociatedWithPubkey is validated once below,
@@ -592,7 +582,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         LogPrint("masternode", "mnb - Got updated entry for %s\n", vin.prevout.hash.ToString());
         if (pmn->UpdateFromNewBroadcast((*this))) {
             pmn->Check();
-            if (pmn->IsAvailableState() || pmn->IsUnlocking())
+            if (pmn->IsAvailableState() || pmn->IsExpiring())
                 Relay();
         }
         masternodeSync.AddedMasternodeList(GetHash());
@@ -617,7 +607,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
             return false;
 
         // nothing to do here if we already know about this masternode and it's enabled
-        if (pmn->IsAvailableState() || pmn->IsUnlocking())
+        if (pmn->IsAvailableState() || pmn->IsExpiring())
             return true;
         // if it's not enabled, remove old MN first and continue
         else

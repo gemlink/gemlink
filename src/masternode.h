@@ -125,7 +125,6 @@ public:
     enum state {
         MASTERNODE_PRE_ENABLED,
         MASTERNODE_ENABLED,
-        MASTERNODE_UNLOCKING,
         MASTERNODE_EXPIRED,
         MASTERNODE_REMOVE,
         MASTERNODE_WATCHDOG_EXPIRED,
@@ -269,9 +268,9 @@ public:
         return activeState == MASTERNODE_ENABLED || activeState == MASTERNODE_PRE_ENABLED;
     }
 
-    bool IsUnlocking() const
+    bool IsExpiring() const
     {
-        return activeState == MASTERNODE_UNLOCKING;
+        return activeState == MASTERNODE_EXPIRED;
     }
 
     std::string Status()
@@ -283,8 +282,6 @@ public:
             strStatus = "PRE_ENABLED";
         if (activeState == CMasternode::MASTERNODE_ENABLED)
             strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_UNLOCKING)
-            strStatus = "UNLOCKING";
         if (activeState == CMasternode::MASTERNODE_EXPIRED)
             strStatus = "EXPIRED";
         if (activeState == CMasternode::MASTERNODE_VIN_SPENT)
