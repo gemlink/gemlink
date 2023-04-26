@@ -114,6 +114,11 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             CNetAddr node = CNetAddr(strHost, false);
             std::string strNetwork = GetNetworkName(node.GetNetwork());
 
+            CTxDestination address = keyIO.DecodeDestination(keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
+            CScript scriptPubKey = GetScriptForDestination(address);
+
+            int ntime = 0;
+            bool result = GetLastPaymentBlock(s.second.vin, scriptPubKey, ntime);
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
             obj.push_back(Pair("network", strNetwork));
             obj.push_back(Pair("ip", strHost));
@@ -125,6 +130,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
             obj.push_back(Pair("lastpaid", (int64_t)mn->GetLastPaid()));
+            obj.push_back(Pair("unlocktime", (uint64_t)(result ? ntime + Params().GetMnStartUnlockTime() : 0)));
 
             ret.push_back(obj);
         }
@@ -1042,7 +1048,7 @@ UniValue getamiinfo(const UniValue& params, bool fHelp)
             "Returns an object containing various state info regarding block chain processing.\n"
             "\n"
             "\nExamples:\n" +
-            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", "") + "\n" + 
+            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", "") + "\n" +
             "For more information, go to https://github.com/apps-alis-is/glink.node");
 
     LOCK(cs_main);
