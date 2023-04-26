@@ -1077,9 +1077,9 @@ bool ContextualCheckTransaction(
                 CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
                 bool found = false;
                 CScript scriptPubKey;
-                for (CTxOut out : txVin.vout) {
-                    if (out.nValue == masternodeCollateral) {
-                        scriptPubKey = out.scriptPubKey;
+                for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+                    if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
+                        scriptPubKey = txVin.vout[i].scriptPubKey;
                         found = true;
                         break;
                     }
