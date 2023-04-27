@@ -4059,12 +4059,16 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
             int nDepth = pcoin->GetDepthInMainChain();
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
+                if (IsLockedCoin((*it).first, i)) {
+                    continue;
+                }
+
                 bool found = false;
                 int lastTime = 0;
                 CMasternode* pmn = mnodeman.Find(pcoin->vout[i].scriptPubKey);
                 if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN) {
                     if (
-                        GetLastPaymentBlock(pmn->vin.prevout.hash, pcoin->vout[i].scriptPubKey, lastTime)) {
+                        GetLastPaymentBlock(pmn->vin.prevout.hash, pcoin->vout[i].scriptPubKey, lastTime) && lastTime + Params().GetMnLockTime() > GetTime()) {
                         found = true;
                     }
                 }
