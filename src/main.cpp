@@ -980,7 +980,6 @@ bool ContextualCheckTransaction(
     bool saplingActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_SAPLING);
     bool atlantisActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS);
     bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
-    bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -1064,44 +1063,6 @@ bool ContextualCheckTransaction(
             // Don't increase banscore if the transaction only just expired
             int expiredDosLevel = IsExpiredTx(tx, nHeight - 1) ? dosLevel : 0;
             return state.DoS(expiredDosLevel, error("ContextualCheckTransaction(): transaction is expired"), REJECT_INVALID, "tx-overwinter-expired");
-        }
-    }
-
-    if (xandarActive) {
-        if (masternodeSync.IsBlockchainSynced()) {
-            for (const CTxIn vin : tx.vin) {
-                // check if it's mn collateral
-                uint256 hashBlock = uint256();
-                CTransaction txVin;
-                if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
-                    if (txVin.IsCoinBase())
-                        continue;
-                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
-                    CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
-                    bool found = false;
-                    CScript scriptPubKey;
-                    for (unsigned int i = 0; i < txVin.vout.size(); i++) {
-                        if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
-                            scriptPubKey = txVin.vout[i].scriptPubKey;
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (found) {
-                        int nTime = 0;
-                        if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
-                            // find last mn payment
-                            int delta = chainActive.Tip()->nTime - nTime;
-                            if (delta < Params().GetMnLockTime()) {
-                                LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                                return state.DoS(dosLevel, error("ContextualCheckTransaction(): tx locked failed"),
-                                                 REJECT_INVALID, "bad-txns-lock");
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -2632,6 +2593,45 @@ bool ContextualCheckInputs(
                     // peering with non-upgraded nodes even after a soft-fork
                     // super-majority vote has passed.
                     return state.DoS(100, false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
+                }
+            }
+        }
+
+        bool xandarActive = Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR);
+        if (xandarActive && flags == MANDATORY_SCRIPT_VERIFY_FLAGS) {
+            for (const CTxIn vin : tx.vin) {
+                // check if it's mn collateral
+                uint256 hashBlock = uint256();
+                CTransaction txVin;
+                if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
+                    if (txVin.IsCoinBase())
+                        continue;
+                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
+                    if (pblockindex == NULL)
+                        continue;
+                    CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
+                    bool found = false;
+                    CScript scriptPubKey;
+                    for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+                        if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
+                            scriptPubKey = txVin.vout[i].scriptPubKey;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        int nTime = 0;
+                        if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
+                            // find last mn payment
+                            int delta = chainActive.Tip()->nTime - nTime;
+                            if (delta < Params().GetMnLockTime()) {
+                                LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
+                                return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
+                                                 REJECT_INVALID, "bad-txns-lock");
+                            }
+                        }
+                    }
                 }
             }
         }
