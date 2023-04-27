@@ -951,5 +951,5 @@ std::pair<std::map<CBlockIndex*, std::list<CTransaction>>, uint64_t> DrainRecent
 void SetChainNotifiedSequence(const CChainParams& chainparams, uint64_t recentlyConflictedSequence);
 bool ChainIsFullyNotified(const CChainParams& chainparams);
 
-bool GetLastPaymentBlock(CTxIn vIn, CScript address, int& lastTime);
+bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime);
 #endif // BITCOIN_MAIN_H

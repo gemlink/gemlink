@@ -118,7 +118,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             CScript scriptPubKey = GetScriptForDestination(address);
 
             int ntime = 0;
-            bool result = GetLastPaymentBlock(s.second.vin, scriptPubKey, ntime);
+            bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, ntime);
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
             obj.push_back(Pair("network", strNetwork));
             obj.push_back(Pair("ip", strHost));

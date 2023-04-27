@@ -1090,7 +1090,7 @@ bool ContextualCheckTransaction(
 
                     if (found) {
                         int nTime = 0;
-                        if (GetLastPaymentBlock(vin, scriptPubKey, nTime)) {
+                        if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
                             // find last mn payment
                             int delta = chainActive.Tip()->nTime - nTime;
                             if (delta < Params().GetMnLockTime()) {
@@ -7281,21 +7281,21 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
     return mtx;
 }
 
-bool GetLastPaymentBlock(CTxIn vIn, CScript address, int& lastTime)
+bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime)
 {
     CBlockIndex* pindexSlow = NULL;
 
     LOCK(cs_main);
 
     CTransaction txOut;
-    if (mempool.lookup(vIn.prevout.hash, txOut)) {
+    if (mempool.lookup(hash, txOut)) {
         return true;
     }
 
     int nHeight = -1;
     {
         CCoinsViewCache& view = *pcoinsTip;
-        const CCoins* coins = view.AccessCoins(vIn.prevout.hash);
+        const CCoins* coins = view.AccessCoins(hash);
         if (coins)
             nHeight = coins->nHeight;
     }
@@ -7306,7 +7306,7 @@ bool GetLastPaymentBlock(CTxIn vIn, CScript address, int& lastTime)
     if (pindexSlow) {
         if (ReadBlockFromDisk(block, pindexSlow, Params().GetConsensus())) {
             for (const CTransaction& tx : block.vtx) {
-                if (tx.GetHash() == vIn.prevout.hash) {
+                if (tx.GetHash() == hash) {
                     break;
                 }
             }
@@ -7338,6 +7338,9 @@ bool GetLastPaymentBlock(CTxIn vIn, CScript address, int& lastTime)
                         return true;
                     }
                 }
+
+                // because block has only 1 coinbase tx, so break here to scan another block
+                break;
             }
         }
         scanHeight--;
