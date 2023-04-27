@@ -3988,20 +3988,14 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                 } else if (!pcoin->IsCoinBase() && masternodeSync.IsSynced() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
                     int lastTime = 0;
                     CMasternode* pmn = mnodeman.Find(pcoin->vout[i].scriptPubKey);
-                    if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN) {
-                        if (
-                            GetLastPaymentBlock(pmn->vin.prevout.hash, pcoin->vout[i].scriptPubKey, lastTime)) {
-                            continue;
-                        } else {
-                            found = true;
-                        }
+                    if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN && GetLastPaymentBlock(pmn->vin.prevout.hash, pcoin->vout[i].scriptPubKey, lastTime)) {
+                        continue;
                     } else {
                         found = true;
                     }
                 } else {
                     found = true;
                 }
-
 
                 if (!found)
                     continue;

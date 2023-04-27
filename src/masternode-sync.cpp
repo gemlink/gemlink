@@ -95,6 +95,7 @@ void CMasternodeSync::Reset()
     RequestedMasternodeAssets = MASTERNODE_SYNC_INITIAL;
     RequestedMasternodeAttempt = 0;
     nAssetSyncStarted = GetTime();
+    ClearFulfilledRequest();
 }
 
 void CMasternodeSync::AddedMasternodeList(const uint256& hash)

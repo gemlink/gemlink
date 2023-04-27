@@ -118,7 +118,10 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             CScript scriptPubKey = GetScriptForDestination(address);
 
             int ntime = 0;
+            int curr = GetTime();
             bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, ntime);
+            int lockTime = ntime + Params().GetMnLockTime();
+            lockTime = lockTime > curr ? lockTime : 0;
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
             obj.push_back(Pair("network", strNetwork));
             obj.push_back(Pair("ip", strHost));
@@ -130,7 +133,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
             obj.push_back(Pair("lastpaid", (int64_t)mn->GetLastPaid()));
-            obj.push_back(Pair("unlocktime", (uint64_t)(result ? ntime + Params().GetMnLockTime() : 0)));
+            obj.push_back(Pair("unlocktime", (uint64_t)(result ? lockTime : 0)));
 
             ret.push_back(obj);
         }
