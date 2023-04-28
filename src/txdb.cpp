@@ -473,36 +473,40 @@ bool CBlockTreeDB::ReadAddressIndex(
 
 bool CBlockTreeDB::ReadAddressIndexMN(
     uint160 addressHash,
+    int type,
+    std::vector<CAddressIndexDbEntry>& addressIndex,
     int start,
-    int end,
-    int& blockHeight)
+    int end)
 {
     boost::scoped_ptr<CDBIterator> pcursor(NewIterator());
 
     if (start > end) {
         return error("start must be smaller than end");
     }
+
+    pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(type, addressHash, start)));
+
     while (pcursor->Valid()) {
-        pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(true, addressHash, end)));
         boost::this_thread::interruption_point();
         std::pair<char, CAddressIndexKey> key;
         if (!(pcursor->GetKey(key) && key.first == DB_ADDRESSINDEX && key.second.hashBytes == addressHash))
             break;
-        if (key.second.blockHeight < start)
+        if (end > 0 && key.second.blockHeight > end)
             break;
-        CAmount blockValue = GetBlockSubsidy(key.second.blockHeight, Params().GetConsensus());
-        CAmount masternodePayment = GetMasternodePayment(key.second.blockHeight, blockValue);
-        LogPrint("masternode", "Scanning height %d txhash %s index %d\n", key.second.blockHeight, key.second.txhash.ToString(), key.second.txindex);
         CAmount nValue;
         if (!pcursor->GetValue(nValue))
             return error("failed to get address index value");
+
+        CAmount blockValue = GetBlockSubsidy(key.second.blockHeight, Params().GetConsensus());
+        CAmount masternodePayment = GetMasternodePayment(key.second.blockHeight, blockValue);
         if (nValue == masternodePayment) {
-            blockHeight = key.second.blockHeight;
-            return true;
+            addressIndex.push_back(make_pair(key.second, nValue));
         }
-        pcursor->Prev();
+
+        pcursor->Next();
     }
-    return false;
+
+    return addressIndex.size() > 0;
 }
 
 bool CBlockTreeDB::ReadSpentIndex(CSpentIndexKey& key, CSpentIndexValue& value)

@@ -135,9 +135,10 @@ public:
     bool ReadAddressIndex(uint160 addressHash, int type, std::vector<CAddressIndexDbEntry>& addressIndex, int start = 0, int end = 0);
     bool ReadAddressIndexMN(
         uint160 addressHash,
+        int type,
+        std::vector<CAddressIndexDbEntry>& addressIndex,
         int start,
-        int end,
-        int& blockHeight);
+        int end);
     bool ReadSpentIndex(CSpentIndexKey& key, CSpentIndexValue& value);
     bool UpdateSpentIndex(const std::vector<CSpentIndexDbEntry>& vect);
     bool WriteTimestampIndex(const CTimestampIndexKey& timestampIndex);

@@ -1775,13 +1775,13 @@ bool GetAddressIndex(uint160 addressHash, int type, std::vector<std::pair<CAddre
     return true;
 }
 
-bool GetAddressIndexMN(uint160 addressHash, int start, int end, int& blockHeight)
+bool GetAddressIndexMN(uint160 addressHash, int type, std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex, int start, int end)
 {
     if (!fAddressIndex)
         return error("address index not enabled");
 
-    if (!pblocktree->ReadAddressIndexMN(addressHash, start, end, blockHeight))
-        return error("unable to get txids for address");
+    if (!pblocktree->ReadAddressIndexMN(addressHash, type, addressIndex, start, end))
+        return false;
 
     return true;
 }
@@ -7311,44 +7311,45 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime)
         if (coins)
             nHeight = coins->nHeight;
     }
-    // if (nHeight > 0)
-    //     pindexSlow = chainActive[nHeight];
 
-    // CBlock block;
-    // if (pindexSlow) {
-    //     if (ReadBlockFromDisk(block, pindexSlow, Params().GetConsensus())) {
-    //         for (const CTransaction& tx : block.vtx) {
-    //             if (tx.GetHash() == hash) {
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     return false;
-    // }
-
-    // uint32_t lastScanTime = block.GetBlockTime();
-
-    nHeight = std::max(nHeight, chainActive.Tip()->nHeight - 14 * 1440);
+    nHeight = std::max(nHeight, chainActive.Tip()->nHeight - (int)(Params().GetMnLockTime() / 60));
     int scanHeight = chainActive.Height();
 
     int lastPayment = 0;
-
     uint160 hashBytes;
     int type = 0;
-    int addressType;
-    if (address.IsPayToScriptHash()) {
-        vector<unsigned char> hashBytes(address.begin() + 2, address.begin() + 22);
 
-    } else if (address.IsPayToPublicKeyHash()) {
-        vector<unsigned char> hashBytes(address.begin() + 3, address.begin() + 23);
+    CTxDestination address1;
+    ExtractDestination(address, address1);
+
+    KeyIO keyIO(Params());
+    CTxDestination address2 = keyIO.DecodeDestination(keyIO.EncodeDestination(address1));
+
+    if (IsKeyDestination(address2)) {
+        auto x = std::get_if<CKeyID>(&address2);
+        memcpy(&hashBytes, x->begin(), 20);
+        type = CScript::P2PKH;
+    } else if (IsScriptDestination(address2)) {
+        auto x = std::get_if<CScriptID>(&address2);
+        memcpy(&hashBytes, x->begin(), 20);
+        type = CScript::P2SH;
     } else {
         return false;
     }
-    LogPrint("masternode", "start block %d end block %d\n", nHeight, scanHeight);
-    if (GetAddressIndexMN(hashBytes, nHeight, scanHeight, lastPayment)) {
-        lastTime = chainActive[lastPayment]->GetBlockTime();
-        return true;
+
+    std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
+
+    while (scanHeight > nHeight) {
+        if (GetAddressIndexMN(hashBytes, type, addressIndex, scanHeight - 10, scanHeight)) {
+            int lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
+            if (lastHeight > 0) {
+                lastTime = chainActive[lastHeight]->GetBlockTime();
+                return true;
+            }
+
+            return false;
+        }
+        scanHeight -= 10;
     }
 
     return false;

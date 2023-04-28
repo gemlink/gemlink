@@ -106,7 +106,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
                 mn->Status().find(strFilter) == string::npos &&
                 keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()).find(strFilter) == string::npos)
                 continue;
-            LogPrintf("Get masternode info %s", keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
+            // LogPrintf("Get masternode info %s", keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
             std::string strStatus = mn->Status();
             std::string strHost;
             int port;
@@ -120,7 +120,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             int ntime = 0;
             int curr = GetTime();
             bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, ntime);
-            LogPrintf("Get masternode result %d", result);
+            // LogPrintf("Get masternode result %d", result);
             int lockTime = ntime + Params().GetMnLockTime();
             lockTime = lockTime > curr ? lockTime : 0;
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
@@ -134,6 +134,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
             obj.push_back(Pair("lastpaid", (int64_t)mn->GetLastPaid()));
+            obj.push_back(Pair("ntime", ntime));
             obj.push_back(Pair("unlocktime", (uint64_t)(result ? lockTime : 0)));
 
             ret.push_back(obj);
