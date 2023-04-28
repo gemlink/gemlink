@@ -106,7 +106,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
                 mn->Status().find(strFilter) == string::npos &&
                 keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()).find(strFilter) == string::npos)
                 continue;
-
+            LogPrintf("Get masternode info %s", keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
             std::string strStatus = mn->Status();
             std::string strHost;
             int port;
@@ -120,6 +120,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             int ntime = 0;
             int curr = GetTime();
             bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, ntime);
+            LogPrintf("Get masternode result %d", result);
             int lockTime = ntime + Params().GetMnLockTime();
             lockTime = lockTime > curr ? lockTime : 0;
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
