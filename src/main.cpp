@@ -5022,12 +5022,12 @@ bool static LoadBlockIndexDB()
 
     // insightexplorer and lightwalletd
     // Check whether block explorer features are enabled
-    bool fInsightExplorer = true;
+    bool fInsightExplorer = false;
     bool fLightWalletd = false;
-    // pblocktree->ReadFlag("insightexplorer", fInsightExplorer);
-    // pblocktree->ReadFlag("lightwalletd", fLightWalletd);
-    // LogPrintf("%s: insight explorer %s\n", __func__, fInsightExplorer ? "enabled" : "disabled");
-    // LogPrintf("%s: light wallet daemon %s\n", __func__, fLightWalletd ? "enabled" : "disabled");
+    pblocktree->ReadFlag("insightexplorer", fInsightExplorer);
+    pblocktree->ReadFlag("lightwalletd", fLightWalletd);
+    LogPrintf("%s: insight explorer %s\n", __func__, fInsightExplorer ? "enabled" : "disabled");
+    LogPrintf("%s: light wallet daemon %s\n", __func__, fLightWalletd ? "enabled" : "disabled");
     if (fInsightExplorer) {
         fAddressIndex = true;
         fSpentIndex = true;
@@ -5368,9 +5368,9 @@ bool InitBlockIndex()
     pblocktree->WriteFlag("txindex", fTxIndex);
 
     // Use the provided setting for -insightexplorer or -lightwalletd in the new database
-    // pblocktree->WriteFlag("insightexplorer", fExperimentalInsightExplorer);
-    // pblocktree->WriteFlag("lightwalletd", fExperimentalLightWalletd);
-    fExperimentalInsightExplorer = true;
+    pblocktree->WriteFlag("insightexplorer", fExperimentalInsightExplorer);
+    pblocktree->WriteFlag("lightwalletd", fExperimentalLightWalletd);
+
     if (fExperimentalInsightExplorer) {
         fAddressIndex = true;
         fSpentIndex = true;
@@ -7314,62 +7314,63 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
 
 bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime)
 {
-    CBlockIndex* pindexSlow = NULL;
+    return true;
+    // CBlockIndex* pindexSlow = NULL;
 
-    LOCK(cs_main);
+    // LOCK(cs_main);
 
-    CTransaction txOut;
-    if (mempool.lookup(hash, txOut)) {
-        return true;
-    }
+    // CTransaction txOut;
+    // if (mempool.lookup(hash, txOut)) {
+    //     return true;
+    // }
 
-    int nHeight = -1;
-    {
-        CCoinsViewCache& view = *pcoinsTip;
-        const CCoins* coins = view.AccessCoins(hash);
-        if (coins)
-            nHeight = coins->nHeight;
-    }
+    // int nHeight = -1;
+    // {
+    //     CCoinsViewCache& view = *pcoinsTip;
+    //     const CCoins* coins = view.AccessCoins(hash);
+    //     if (coins)
+    //         nHeight = coins->nHeight;
+    // }
 
-    nHeight = std::max(nHeight, chainActive.Tip()->nHeight - (int)(Params().GetMnLockTime() / 60));
-    int scanHeight = chainActive.Height();
+    // nHeight = std::max(nHeight, chainActive.Tip()->nHeight - (int)(Params().GetMnLockTime() / 60));
+    // int scanHeight = chainActive.Height();
 
-    int lastPayment = 0;
-    uint160 hashBytes;
-    int type = 0;
+    // int lastPayment = 0;
+    // uint160 hashBytes;
+    // int type = 0;
 
-    CTxDestination address1;
-    ExtractDestination(address, address1);
+    // CTxDestination address1;
+    // ExtractDestination(address, address1);
 
-    KeyIO keyIO(Params());
-    CTxDestination address2 = keyIO.DecodeDestination(keyIO.EncodeDestination(address1));
+    // KeyIO keyIO(Params());
+    // CTxDestination address2 = keyIO.DecodeDestination(keyIO.EncodeDestination(address1));
 
-    if (IsKeyDestination(address2)) {
-        auto x = std::get_if<CKeyID>(&address2);
-        memcpy(&hashBytes, x->begin(), 20);
-        type = CScript::P2PKH;
-    } else if (IsScriptDestination(address2)) {
-        auto x = std::get_if<CScriptID>(&address2);
-        memcpy(&hashBytes, x->begin(), 20);
-        type = CScript::P2SH;
-    } else {
-        return false;
-    }
+    // if (IsKeyDestination(address2)) {
+    //     auto x = std::get_if<CKeyID>(&address2);
+    //     memcpy(&hashBytes, x->begin(), 20);
+    //     type = CScript::P2PKH;
+    // } else if (IsScriptDestination(address2)) {
+    //     auto x = std::get_if<CScriptID>(&address2);
+    //     memcpy(&hashBytes, x->begin(), 20);
+    //     type = CScript::P2SH;
+    // } else {
+    //     return false;
+    // }
 
-    std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
+    // std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
 
-    while (scanHeight > nHeight) {
-        if (GetAddressIndexMN(hashBytes, type, addressIndex, scanHeight - 10, scanHeight)) {
-            int lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
-            if (lastHeight > 0) {
-                lastTime = chainActive[lastHeight]->GetBlockTime();
-                return true;
-            }
+    // while (scanHeight > nHeight) {
+    //     if (GetAddressIndexMN(hashBytes, type, addressIndex, scanHeight - 10, scanHeight)) {
+    //         int lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
+    //         if (lastHeight > 0) {
+    //             lastTime = chainActive[lastHeight]->GetBlockTime();
+    //             return true;
+    //         }
 
-            return false;
-        }
-        scanHeight -= 10;
-    }
+    //         return false;
+    //     }
+    //     scanHeight -= 10;
+    // }
 
     return false;
 }
