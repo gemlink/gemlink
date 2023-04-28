@@ -1705,6 +1705,10 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
             return error("AcceptToMemoryPool: ConnectInputs failed %s", hash.ToString());
         }
 
+        if (!ContextualCheckMNInputs(tx, state)) {
+            return error("AcceptToMemoryPool: ContextualCheckMNInputs failed %s", hash.ToString());
+        }
+
         // Check again against just the consensus-critical mandatory script
         // verification flags, in case of bugs in the standard flags that cause
         // transactions to pass as valid when they're actually invalid. For
@@ -2607,9 +2611,19 @@ bool ContextualCheckInputs(
                 }
             }
         }
+    }
 
+    return true;
+}
+
+
+bool ContextualCheckMNInputs(
+    const CTransaction& tx,
+    CValidationState& state)
+{
+    if (!tx.IsCoinBase()) {
         bool xandarActive = Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR);
-        if (xandarActive && flags == MANDATORY_SCRIPT_VERIFY_FLAGS) {
+        if (xandarActive) {
             for (const CTxIn vin : tx.vin) {
                 // check if it's mn collateral
                 uint256 hashBlock = uint256();
@@ -2633,6 +2647,7 @@ bool ContextualCheckInputs(
 
                     if (found) {
                         int nTime = 0;
+
                         if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
                             // find last mn payment
                             int delta = chainActive.Tip()->nTime - nTime;
