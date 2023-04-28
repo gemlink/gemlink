@@ -740,6 +740,25 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             continue;
 
         if (strPayment.find(',') != std::string::npos) {
+            if (i < nHeight) {
+                CMasternodePaymentWinner winner;
+                bool success = false;
+                std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
+                while (it != masternodePayments.mapMasternodePayeeVotes.end()) {
+                    winner = (*it).second;
+                    if (winner.nBlockHeight == i) {
+                        success = true;
+                        break;
+                    }
+                    it++;
+                }
+                if (success) {
+                    UniValue vin(UniValue::VOBJ);
+                    vin.push_back(Pair("hash", winner.vinMasternode.prevout.hash.ToString()));
+                    vin.push_back(Pair("idx", (uint64_t)winner.vinMasternode.prevout.n));
+                    obj.push_back(Pair("vin", vin));
+                }
+            }
             UniValue winner(UniValue::VARR);
             boost::char_separator<char> sep(",");
             boost::tokenizer<boost::char_separator<char>> tokens(strPayment, sep);
@@ -763,6 +782,26 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             winner.push_back(Pair("nVotes", nVotes));
             obj.push_back(Pair("winner", winner));
         } else {
+            if (i < nHeight) {
+                CMasternodePaymentWinner winner;
+                bool success = false;
+                std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
+                while (it != masternodePayments.mapMasternodePayeeVotes.end()) {
+                    winner = (*it).second;
+                    if (winner.nBlockHeight == i) {
+                        success = true;
+                        break;
+                    }
+                    it++;
+                }
+                if (success) {
+                    UniValue vin(UniValue::VOBJ);
+                    vin.push_back(Pair("hash", winner.vinMasternode.prevout.hash.ToString()));
+                    vin.push_back(Pair("idx", (uint64_t)winner.vinMasternode.prevout.n));
+                    obj.push_back(Pair("vin", vin));
+                }
+            }
+
             UniValue winner(UniValue::VOBJ);
             winner.push_back(Pair("address", strPayment));
             winner.push_back(Pair("nVotes", 0));

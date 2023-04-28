@@ -304,7 +304,7 @@ void CMasternodeSync::Process()
             } else if (RequestedMasternodeAttempt < 4) {
                 mnodeman.DsegUpdate(pnode);
             } else if (RequestedMasternodeAttempt < 6) {
-                int nMnCount = mnodeman.CountEnabled();
+                int nMnCount = std::max(mnodeman.CountEnabled(), 15 * 1440);
                 pnode->PushMessage("mnget", nMnCount); // sync payees
                 uint256 n = uint256();
                 pnode->PushMessage("mnvs", n);         // sync masternode votes
@@ -398,6 +398,7 @@ void CMasternodeSync::Process()
                     return;
 
                 int nMnCount = mnodeman.CountEnabled();
+                nMnCount = std::max(nMnCount, 15 * 1440);
                 pnode->PushMessage("mnget", nMnCount); // sync payees
                 RequestedMasternodeAttempt++;
 

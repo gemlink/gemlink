@@ -255,6 +255,7 @@ public:
     void Sync(CNode* node, int nCountNeeded);
     void CleanPaymentList();
 
+    bool GetMasternodePaymentWinner(int nBlockHeight, CScript payee, CTxIn vin, CMasternodePaymentWinner& winner);
     bool GetBlockPayee(int nBlockHeight, CScript& payee);
     bool IsTransactionValid(const CChainParams& chainparams, const CTransaction& txNew, int nBlockHeight);
     bool IsScheduled(CMasternode& mn, int nNotBlockHeight);

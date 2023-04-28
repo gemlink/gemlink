@@ -1217,6 +1217,12 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVeri
         }
         return true;
     }
+
+    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
+        if (!CheckMnTx(tx, state)) {
+            return error("AcceptToMemoryPool: CheckMnTx failed %s", tx.GetHash().ToString());
+        }
+    }
 }
 
 bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidationState& state)
@@ -1703,10 +1709,6 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
         PrecomputedTransactionData txdata(tx);
         if (!ContextualCheckInputs(tx, state, view, true, STANDARD_SCRIPT_VERIFY_FLAGS, true, txdata, chainparams.GetConsensus(), consensusBranchId)) {
             return error("AcceptToMemoryPool: ConnectInputs failed %s", hash.ToString());
-        }
-
-        if (!ContextualCheckMNInputs(tx, state)) {
-            return error("AcceptToMemoryPool: ContextualCheckMNInputs failed %s", hash.ToString());
         }
 
         // Check again against just the consensus-critical mandatory script
@@ -2617,45 +2619,47 @@ bool ContextualCheckInputs(
 }
 
 
-bool ContextualCheckMNInputs(
+bool CheckMnTx(
     const CTransaction& tx,
     CValidationState& state)
 {
+    if (!masternodeSync.IsSynced()) {
+        LogPrint("masternodepayments", "Client not synced, skipping mn collateral check\n");
+        return true;
+    }
+
     if (!tx.IsCoinBase()) {
-        bool xandarActive = Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR);
-        if (xandarActive) {
-            for (const CTxIn vin : tx.vin) {
-                // check if it's mn collateral
-                uint256 hashBlock = uint256();
-                CTransaction txVin;
-                if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
-                    if (txVin.IsCoinBase())
-                        continue;
-                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
-                    if (pblockindex == NULL)
-                        continue;
-                    CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
-                    bool found = false;
-                    CScript scriptPubKey;
-                    for (unsigned int i = 0; i < txVin.vout.size(); i++) {
-                        if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
-                            scriptPubKey = txVin.vout[i].scriptPubKey;
-                            found = true;
-                            break;
-                        }
+        for (const CTxIn vin : tx.vin) {
+            // check if it's mn collateral
+            uint256 hashBlock = uint256();
+            CTransaction txVin;
+            if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
+                if (txVin.IsCoinBase())
+                    continue;
+                CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
+                if (pblockindex == NULL)
+                    continue;
+                CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
+                bool found = false;
+                CScript scriptPubKey;
+                for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+                    if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
+                        scriptPubKey = txVin.vout[i].scriptPubKey;
+                        found = true;
+                        break;
                     }
+                }
 
-                    if (found) {
-                        int nTime = 0;
+                if (found) {
+                    int nTime = 0;
 
-                        if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
-                            // find last mn payment
-                            int delta = chainActive.Tip()->nTime - nTime;
-                            if (delta < Params().GetMnLockTime()) {
-                                LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                                return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
-                                                 REJECT_INVALID, "bad-txns-lock");
-                            }
+                    if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
+                        // find last mn payment
+                        int delta = chainActive.Tip()->nTime - nTime;
+                        if (delta < Params().GetMnLockTime()) {
+                            LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
+                            return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
+                                             REJECT_INVALID, "bad-txns-lock");
                         }
                     }
                 }

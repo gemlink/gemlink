@@ -567,6 +567,16 @@ bool CMasternodePayments::GetBlockPayee(int nBlockHeight, CScript& payee)
     return false;
 }
 
+bool CMasternodePayments::GetMasternodePaymentWinner(int nBlockHeight, CScript payee, CTxIn vin, CMasternodePaymentWinner& winner)
+{
+    CMasternodePaymentWinner tempWinner(vin);
+    tempWinner.AddPayee(payee);
+    tempWinner.nBlockHeight = nBlockHeight;
+    if (mapMasternodePayeeVotes.count(tempWinner.GetHash())) {
+        winner = mapMasternodePayeeVotes[tempWinner.GetHash()];
+    }
+}
+
 // Is this masternode scheduled to get paid soon?
 // -- Only look ahead up to 8 blocks to allow for propagation of the latest 2 winners
 bool CMasternodePayments::IsScheduled(CMasternode& mn, int nNotBlockHeight)
