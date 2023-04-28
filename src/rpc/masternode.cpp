@@ -774,14 +774,6 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             }
             obj.push_back(Pair("winner", winner));
         } else if (strPayment.find("Unknown") == std::string::npos) {
-            UniValue winner(UniValue::VOBJ);
-            std::size_t pos = strPayment.find(":");
-            std::string strAddress = strPayment.substr(0, pos);
-            uint64_t nVotes = atoi(strPayment.substr(pos + 1));
-            winner.push_back(Pair("address", strAddress));
-            winner.push_back(Pair("nVotes", nVotes));
-            obj.push_back(Pair("winner", winner));
-        } else {
             if (i < nHeight) {
                 CMasternodePaymentWinner winner;
                 bool success = false;
@@ -801,7 +793,14 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
                     obj.push_back(Pair("vin", vin));
                 }
             }
-
+            UniValue winner(UniValue::VOBJ);
+            std::size_t pos = strPayment.find(":");
+            std::string strAddress = strPayment.substr(0, pos);
+            uint64_t nVotes = atoi(strPayment.substr(pos + 1));
+            winner.push_back(Pair("address", strAddress));
+            winner.push_back(Pair("nVotes", nVotes));
+            obj.push_back(Pair("winner", winner));
+        } else {
             UniValue winner(UniValue::VOBJ);
             winner.push_back(Pair("address", strPayment));
             winner.push_back(Pair("nVotes", 0));
