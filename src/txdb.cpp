@@ -482,15 +482,13 @@ bool CBlockTreeDB::ReadAddressIndexMN(
     if (start > end) {
         return error("start must be smaller than end");
     }
-    int curr = end;
-
-    while (pcursor->Valid() && curr > start) {
-        pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(true, addressHash, curr)));
+    while (pcursor->Valid()) {
+        pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(true, addressHash, end)));
         boost::this_thread::interruption_point();
         std::pair<char, CAddressIndexKey> key;
         if (!(pcursor->GetKey(key) && key.first == DB_ADDRESSINDEX && key.second.hashBytes == addressHash))
             break;
-        if (curr < 0 || key.second.blockHeight < start)
+        if (key.second.blockHeight < start)
             break;
         CAmount blockValue = GetBlockSubsidy(key.second.blockHeight, Params().GetConsensus());
         CAmount masternodePayment = GetMasternodePayment(key.second.blockHeight, blockValue);
@@ -502,7 +500,7 @@ bool CBlockTreeDB::ReadAddressIndexMN(
             blockHeight = key.second.blockHeight;
             return true;
         }
-        --curr;
+        pcursor->Prev();
     }
     return false;
 }

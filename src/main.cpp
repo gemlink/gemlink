@@ -7328,7 +7328,8 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime)
     // }
 
     // uint32_t lastScanTime = block.GetBlockTime();
-    nHeight = std::max(nHeight, chainActive.Tip()->nHeight - 1440);
+
+    nHeight = std::max(nHeight, chainActive.Tip()->nHeight - 14 * 1440);
     int scanHeight = chainActive.Height();
 
     int lastPayment = 0;
@@ -7344,7 +7345,7 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime)
     } else {
         return false;
     }
-
+    LogPrint("masternode", "start block %d end block %d\n", nHeight, scanHeight);
     if (GetAddressIndexMN(hashBytes, nHeight, scanHeight, lastPayment)) {
         lastTime = chainActive[lastPayment]->GetBlockTime();
         return true;
