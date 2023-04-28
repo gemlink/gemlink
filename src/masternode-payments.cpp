@@ -511,7 +511,13 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
             return;
         }
 
-        int nFirstBlock = nHeight - (mnodeman.CountEnabled() * 1.25);
+        int nCount = (mnodeman.CountEnabled() * 1.25);
+        if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+            // store history for 15 days
+            nCount = std::max(nCount, 1440 * 15);
+        }
+        int nFirstBlock = nHeight - nCount;
+
         if (winner.nBlockHeight < nFirstBlock || winner.nBlockHeight > nHeight + 20) {
             LogPrint("mnpayments", "mnw - winner out of range - FirstBlock %d Height %d bestHeight %d\n", nFirstBlock, winner.nBlockHeight, nHeight);
             return;
@@ -734,7 +740,10 @@ void CMasternodePayments::CleanPaymentList()
 
     // keep up to five cycles for historical sake
     int nLimit = std::max(int(mnodeman.size() * 1.25), 1000);
-
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        // store history for 15 days
+        nLimit = std::max(nLimit, 1440 * 15);
+    }
     std::map<uint256, CMasternodePaymentWinner>::iterator it = mapMasternodePayeeVotes.begin();
     while (it != mapMasternodePayeeVotes.end()) {
         CMasternodePaymentWinner winner = (*it).second;
@@ -840,6 +849,10 @@ void CMasternodePayments::Sync(CNode* node, int nCountNeeded)
     }
 
     int nCount = (mnodeman.CountEnabled() * 1.25);
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        // store history for 15 days
+        nCount = std::max(nCount, 1440 * 15);
+    }
     if (nCountNeeded > nCount)
         nCountNeeded = nCount;
 

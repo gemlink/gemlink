@@ -282,7 +282,13 @@ int64_t CMasternode::GetLastPaid()
     // use a deterministic offset to break a tie -- 2.5 minutes
     int64_t nOffset = (UintToArith256(hash)).GetCompact(false) % 150;
 
-    int nMnCount = mnodeman.CountEnabled() * 1.25;
+    int nMnCount = (mnodeman.CountEnabled() * 1.25);
+
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        // store history for 15 days
+        nMnCount = std::max(nMnCount, 1440 * 15);
+    }
+
     int n = 0;
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
         if (n >= nMnCount) {
