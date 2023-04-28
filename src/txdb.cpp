@@ -479,22 +479,22 @@ bool CBlockTreeDB::ReadAddressIndexMN(
 {
     boost::scoped_ptr<CDBIterator> pcursor(NewIterator());
 
-    if (start > 0 && end > 0) {
-        pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(true, addressHash, start)));
-    } else {
-        pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorKey(true, addressHash)));
+    if (start > end) {
+        return error("start must be smaller than end");
     }
+    int curr = end;
 
-    while (pcursor->Valid()) {
+    while (pcursor->Valid() && curr > start) {
+        pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(true, addressHash, curr)));
         boost::this_thread::interruption_point();
         std::pair<char, CAddressIndexKey> key;
         if (!(pcursor->GetKey(key) && key.first == DB_ADDRESSINDEX && key.second.hashBytes == addressHash))
             break;
-        if (end > 0 && key.second.blockHeight > end)
+        if (curr < 0 || key.second.blockHeight < start)
             break;
         CAmount blockValue = GetBlockSubsidy(key.second.blockHeight, Params().GetConsensus());
         CAmount masternodePayment = GetMasternodePayment(key.second.blockHeight, blockValue);
-
+        LogPrint("masternode", "Scanning height %d txhash %s index %d\n", key.second.blockHeight, key.second.txhash.ToString(), key.second.txindex);
         CAmount nValue;
         if (!pcursor->GetValue(nValue))
             return error("failed to get address index value");
@@ -502,6 +502,7 @@ bool CBlockTreeDB::ReadAddressIndexMN(
             blockHeight = key.second.blockHeight;
             return true;
         }
+        --curr;
     }
     return false;
 }

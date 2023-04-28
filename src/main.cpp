@@ -5003,12 +5003,12 @@ bool static LoadBlockIndexDB()
 
     // insightexplorer and lightwalletd
     // Check whether block explorer features are enabled
-    bool fInsightExplorer = false;
+    bool fInsightExplorer = true;
     bool fLightWalletd = false;
-    pblocktree->ReadFlag("insightexplorer", fInsightExplorer);
-    pblocktree->ReadFlag("lightwalletd", fLightWalletd);
-    LogPrintf("%s: insight explorer %s\n", __func__, fInsightExplorer ? "enabled" : "disabled");
-    LogPrintf("%s: light wallet daemon %s\n", __func__, fLightWalletd ? "enabled" : "disabled");
+    // pblocktree->ReadFlag("insightexplorer", fInsightExplorer);
+    // pblocktree->ReadFlag("lightwalletd", fLightWalletd);
+    // LogPrintf("%s: insight explorer %s\n", __func__, fInsightExplorer ? "enabled" : "disabled");
+    // LogPrintf("%s: light wallet daemon %s\n", __func__, fLightWalletd ? "enabled" : "disabled");
     if (fInsightExplorer) {
         fAddressIndex = true;
         fSpentIndex = true;
@@ -5349,8 +5349,9 @@ bool InitBlockIndex()
     pblocktree->WriteFlag("txindex", fTxIndex);
 
     // Use the provided setting for -insightexplorer or -lightwalletd in the new database
-    pblocktree->WriteFlag("insightexplorer", fExperimentalInsightExplorer);
-    pblocktree->WriteFlag("lightwalletd", fExperimentalLightWalletd);
+    // pblocktree->WriteFlag("insightexplorer", fExperimentalInsightExplorer);
+    // pblocktree->WriteFlag("lightwalletd", fExperimentalLightWalletd);
+    fExperimentalInsightExplorer = true;
     if (fExperimentalInsightExplorer) {
         fAddressIndex = true;
         fSpentIndex = true;
