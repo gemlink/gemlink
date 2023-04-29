@@ -847,6 +847,10 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
     KeyIO keyIO(Params());
     std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeList.begin();
     while (it != masternodePayments.mapMasternodePayeeList.end()) {
+        if (pwalletMain->IsSpent(it->second.vinPayee.prevout.hash, it->second.vinPayee.prevout.n)) {
+            ++it;
+            continue;
+        }
         UniValue obj(UniValue::VOBJ);
 
         CTxDestination address1;
