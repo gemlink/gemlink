@@ -149,6 +149,7 @@ CMasternodePaymentDB::ReadResult CMasternodePaymentDB::Read(CMasternodePayments&
 
 CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
                                                        vinMasternode(CTxIn()),
+                                                       vinPayee(CTxIn()),
                                                        nBlockHeight(0),
                                                        payee(CScript())
 {
@@ -175,6 +176,10 @@ uint256 CMasternodePaymentWinner::GetHash() const
     ss << std::vector<unsigned char>(payee.begin(), payee.end());
     ss << nBlockHeight;
     ss << vinMasternode.prevout;
+    bool fNewSigs = NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
+    if (fNewSigs) {
+        ss << vinPayee.prevout;
+    }
 
     return ss.GetHash();
 }
@@ -876,7 +881,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
             CScript payee = GetScriptForDestination(pmn->pubKeyCollateralAddress.GetID());
             newWinner.AddPayee(payee);
 
-            newWinner.vinMasternode = pmn->vin;
+            newWinner.vinPayee = pmn->vin;
 
             CTxDestination address1;
             ExtractDestination(payee, address1);

@@ -855,8 +855,8 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
 
         obj.push_back(Pair("nHeight", it->second.nBlockHeight));
         obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-        obj.push_back(Pair("hash", it->second.vinMasternode.prevout.hash.ToString()));
-        obj.push_back(Pair("idx", (uint64_t)it->second.vinMasternode.prevout.n));
+        obj.push_back(Pair("hash", it->second.vinPayee.prevout.hash.ToString()));
+        obj.push_back(Pair("idx", (uint64_t)it->second.vinPayee.prevout.n));
 
         ret.push_back(obj);
         it++;
