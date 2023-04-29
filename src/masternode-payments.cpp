@@ -593,7 +593,7 @@ void CMasternodePayments::UpdatePayeeList()
             continue;
         }
         LogPrint("masternode1", "new height check %d", it->second.nBlockHeight);
-        uint256 hash = it->second.vinMasternode.prevout.GetHash();
+        uint256 hash = it->second.vinPayee.prevout.GetHash();
         if (!mapMasternodePayeeList.count(hash)) {
             mapMasternodePayeeList[hash] = it->second;
 
@@ -608,14 +608,14 @@ void CMasternodePayments::UpdatePayeeList()
 
 void CMasternodePayments::UpdatePayeeList(CMasternodePaymentWinner winner)
 {
-    uint256 hash = winner.vinMasternode.prevout.GetHash();
+    uint256 hash = winner.vinPayee.prevout.GetHash();
     KeyIO keyIO(Params());
 
     CTxDestination address1;
     ExtractDestination(winner.payee, address1);
 
     if (winner.nBlockHeight < chainActive.Height()) {
-        LogPrint("masternode1", "new height check 2 %d payee %s hash %s tx %s idx %d", winner.nBlockHeight, keyIO.EncodeDestination(address1), hash.ToString(), winner.vinMasternode.prevout.hash.ToString(), winner.vinMasternode.prevout.n);
+        LogPrint("masternode1", "new height check 2 %d payee %s hash %s tx %s idx %d", winner.nBlockHeight, keyIO.EncodeDestination(address1), hash.ToString(), winner.vinPayee.prevout.hash.ToString(), winner.vinPayee.prevout.n);
         if (!mapMasternodePayeeList.count(hash)) {
             LogPrint("masternode1", "new height check 4 %d", winner.nBlockHeight);
             mapMasternodePayeeList[hash] = winner;
