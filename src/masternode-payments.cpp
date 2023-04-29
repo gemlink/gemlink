@@ -875,6 +875,8 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
             CScript payee = GetScriptForDestination(pmn->pubKeyCollateralAddress.GetID());
             newWinner.AddPayee(payee);
 
+            newWinner.vinMasternode = pmn->vin;
+
             CTxDestination address1;
             ExtractDestination(payee, address1);
 
