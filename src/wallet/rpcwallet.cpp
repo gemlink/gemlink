@@ -96,7 +96,7 @@ void ThrowIfInitialBlockDownload()
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Error: Sending transactions is not supported during initial block download.");
     }
 
-    if (masternodeSync.IsSynced()) {
+    if (!masternodeSync.IsSynced()) {
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Error: Sending transactions is not supported during masternode syncing.");
     }
 }
