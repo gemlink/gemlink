@@ -286,7 +286,7 @@ int64_t CMasternode::GetLastPaid()
 
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
         // store history for 15 days
-        nMnCount = std::max(nMnCount, 0);
+        nMnCount = std::max(nMnCount, (int)(Params().GetmnLockBlocks() * 1.1));
     }
 
     int n = 0;
@@ -342,20 +342,12 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
 
 int CMasternode::GetExpirationTime()
 {
-    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        return Params().GetMnExpirationTime();
-    } else {
-        return MASTERNODE_EXPIRATION_SECONDS;
-    }
+    return MASTERNODE_EXPIRATION_SECONDS;
 }
 
 int CMasternode::GetRemovalTime()
 {
-    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        return Params().GetMnExpirationTime() + Params().GetMnLockTime();
-    } else {
-        return MASTERNODE_REMOVAL_SECONDS;
-    }
+    return MASTERNODE_REMOVAL_SECONDS;
 }
 
 CMasternodeBroadcast::CMasternodeBroadcast() : CMasternode()

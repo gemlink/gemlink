@@ -117,12 +117,11 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             CTxDestination address = keyIO.DecodeDestination(keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
             CScript scriptPubKey = GetScriptForDestination(address);
 
-            int ntime = 0;
+            int nHeight = 0;
             int curr = GetTime();
-            bool result = GetLastPaymentBlock(s.second.vin, scriptPubKey, ntime);
+            bool result = GetLastPaymentBlock(s.second.vin, nHeight);
             // LogPrintf("Get masternode result %d", result);
-            int lockTime = ntime + Params().GetMnLockTime();
-            lockTime = lockTime > curr ? lockTime : 0;
+            int unlockHeight = chainActive.Height() > nHeight + Params().GetmnLockBlocks() ? 0 : nHeight + Params().GetmnLockBlocks();
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
             obj.push_back(Pair("network", strNetwork));
             obj.push_back(Pair("ip", strHost));
@@ -134,8 +133,8 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
             obj.push_back(Pair("lastpaid", (int64_t)mn->GetLastPaid()));
-            obj.push_back(Pair("ntime", ntime));
-            obj.push_back(Pair("unlocktime", (uint64_t)(result ? lockTime : 0)));
+            obj.push_back(Pair("lastpaidheight", nHeight));
+            obj.push_back(Pair("unlockheight", unlockHeight));
 
             ret.push_back(obj);
         }

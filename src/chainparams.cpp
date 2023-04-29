@@ -305,8 +305,7 @@ public:
         masternodeProtectionBlock = 590000;
         masternodeCollateral = 10000;
         masternodeCollateralNew = 20000;
-        mnLockTime = 14 * 86400;
-        mnExpirationTime = 120 * 60;
+        mnLockBlocks = 14 * 1440;
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 };
@@ -458,8 +457,7 @@ public:
         masternodeProtectionBlock = 7900;
         masternodeCollateral = 10;
         masternodeCollateralNew = 20;
-        mnLockTime = 50 * 60; // count from the last mn payent
-        mnExpirationTime = 25 * 60;
+        mnLockBlocks = 50; // count from the last mn payent
     }
 };
 static CTestNetParams testNetParams;
@@ -565,8 +563,7 @@ public:
         vDevelopersRewardAddress = {
             "t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
 
-        mnLockTime = 120;
-        mnExpirationTime = 60;
+        mnLockBlocks = 120;
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 

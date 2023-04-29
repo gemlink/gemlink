@@ -2520,7 +2520,9 @@ CAmount CWalletTx::GetLockedCredit() const
 
         // Add locked coins
         if (pwallet->IsLockedCoin(hashTx, i)) {
-            nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
+            // move to get masternode coin
+            // nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
+            continue;
         }
 
         // Add masternode collaterals which are handled likc locked coins
@@ -3986,9 +3988,10 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                 if (coin_type == ONLY_10000) {
                     found = pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
                 } else if (!pcoin->IsCoinBase() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-                    int lastTime = 0;
-                    CMasternode* pmn = mnodeman.Find(pcoin->vout[i].scriptPubKey);
-                    if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN && GetLastPaymentBlock(pmn->vin, pcoin->vout[i].scriptPubKey, lastTime)) {
+                    int lastBlock = 0;
+                    COutPoint prevout(pcoin->vout[i].GetHash(), i);
+                    CTxIn vin(prevout);
+                    if (GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
                         continue;
                     } else {
                         found = true;
@@ -4059,19 +4062,15 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
             int nDepth = pcoin->GetDepthInMainChain();
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-                if (IsLockedCoin((*it).first, i)) {
-                    continue;
+                bool found = false;
+                int lastBlock = 0;
+                COutPoint prevout(pcoin->vout[i].GetHash(), i);
+                CTxIn vin(prevout);
+                if (
+                    GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    found = true;
                 }
 
-                bool found = false;
-                int lastTime = 0;
-                CMasternode* pmn = mnodeman.Find(pcoin->vout[i].scriptPubKey);
-                if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN) {
-                    if (
-                        GetLastPaymentBlock(pmn->vin, pcoin->vout[i].scriptPubKey, lastTime) && lastTime + Params().GetMnLockTime() > GetTime()) {
-                        found = true;
-                    }
-                }
 
                 if (!found) {
                     continue;

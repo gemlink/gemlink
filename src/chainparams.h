@@ -125,14 +125,9 @@ public:
         }
     }
 
-    int GetMnLockTime() const
+    int GetmnLockBlocks() const
     {
-        return mnLockTime;
-    }
-
-    int GetMnExpirationTime() const
-    {
-        return mnExpirationTime;
+        return mnLockBlocks;
     }
 
 protected:
@@ -175,7 +170,7 @@ protected:
     int masternodeCollateral;
     int masternodeCollateralNew;
 
-    int mnLockTime;
+    int mnLockBlocks;
     int mnExpirationTime;
 };
 

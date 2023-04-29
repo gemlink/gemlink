@@ -2630,10 +2630,9 @@ bool CheckMnTx(
 
     if (!tx.IsCoinBase()) {
         for (const CTxIn vin : tx.vin) {
-            CMasternodePaymentWinner winner;
-            if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
-                int delta = chainActive.Tip()->nTime - chainActive[winner.nBlockHeight]->nTime;
-                if (delta < Params().GetMnLockTime()) {
+            int nHeight = 0;
+            if (GetLastPaymentBlock(vin, nHeight)) {
+                if (nHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
                     LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
                     return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
                                      REJECT_INVALID, "bad-txns-lock");
@@ -7287,11 +7286,11 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
     return mtx;
 }
 
-bool GetLastPaymentBlock(CTxIn vin, CScript address, int& lastTime)
+bool GetLastPaymentBlock(CTxIn vin, int& lastHeight)
 {
     CMasternodePaymentWinner winner;
     if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
-        lastTime = chainActive[winner.nBlockHeight]->nTime;
+        lastHeight = winner.nBlockHeight;
         return true;
     }
 

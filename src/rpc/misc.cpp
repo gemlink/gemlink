@@ -4,9 +4,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "clientversion.h"
+#include "experimental_features.h"
 #include "init.h"
 #include "key_io.h"
-#include "experimental_features.h"
 #include "main.h"
 #include "masternode-sync.h"
 #include "metrics.h"
@@ -15,8 +15,8 @@
 #include "rpc/server.h"
 #include "spork.h"
 #include "timedata.h"
-#include "txmempool.h"
 #include "txdb.h"
+#include "txmempool.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #ifdef ENABLE_WALLET
@@ -191,8 +191,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                 address.push_back(Pair("amount", ValueFromAmount(nBalance)));
                 if (pwalletMain->HaveSaplingSpendingKeyForAddress(addr)) {
                     address.push_back(Pair("ismine", true));
-                }
-                else {
+                } else {
                     address.push_back(Pair("ismine", false));
                 }
                 addrlist.push_back(Pair(strName, address));
@@ -254,6 +253,28 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         trans.clear();
         trans.setArray();
         trans.push_backV(arrTmp);
+    }
+
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        vector<COutput> vCoins;
+        pwalletMain->MasternodeCoins(vCoins);
+
+        if (vCoins.size() > 0) {
+            UniValue mnList(UniValue::VARR);
+            for (COutput v : vCoins) {
+                int lastHeight = 0;
+                COutPoint prevout(v.tx->vout[v.i].GetHash(), v.i);
+                CTxIn vin(prevout);
+                GetLastPaymentBlock(vin, lastHeight);
+
+                UniValue mn(UniValue::VOBJ);
+                mn.push_back(Pair("amount", v.Value()));
+                mn.push_back(Pair("hash", v.tx->vout[v.i].GetHash().ToString()));
+                mn.push_back(Pair("index", v.i));
+                mn.push_back(Pair("unlockedheight", lastHeight + Params().GetmnLockBlocks()));
+            }
+            returnObj.push_back(Pair("lockedtxs", mnList));
+        }
     }
 
     returnObj.push_back(Pair("listtransactions", trans));
@@ -557,13 +578,13 @@ UniValue validateaddress(const UniValue& params, bool fHelp)
 }
 
 
-
 class DescribePaymentAddressVisitor
 {
 public:
-    UniValue operator()(const libzcash::InvalidEncoding &zaddr) const { return UniValue(UniValue::VOBJ); }
+    UniValue operator()(const libzcash::InvalidEncoding& zaddr) const { return UniValue(UniValue::VOBJ); }
 
-    UniValue operator()(const libzcash::SproutPaymentAddress &zaddr) const {
+    UniValue operator()(const libzcash::SproutPaymentAddress& zaddr) const
+    {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("type", "sprout");
         obj.pushKV("payingkey", zaddr.a_pk.GetHex());
@@ -576,7 +597,8 @@ public:
         return obj;
     }
 
-    UniValue operator()(const libzcash::SaplingPaymentAddress &zaddr) const {
+    UniValue operator()(const libzcash::SaplingPaymentAddress& zaddr) const
+    {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("type", "sapling");
         obj.pushKV("diversifier", HexStr(zaddr.d));
@@ -835,7 +857,9 @@ bool getAddressFromIndex(const int& type, const uint160& hash, std::string& addr
 // This function accepts an address and returns in the output parameters
 // the version and raw bytes for the RIPEMD-160 hash.
 bool getIndexKey(
-    const CTxDestination& dest, uint160& hashBytes, int& type)
+    const CTxDestination& dest,
+    uint160& hashBytes,
+    int& type)
 {
     if (!IsValidDestination(dest)) {
         return false;
@@ -910,8 +934,8 @@ UniValue getaddressmempool(const UniValue& params, bool fHelp)
     if (fHelp || params.size() != 1)
         throw runtime_error(
             "getaddressmempool {\"addresses\": [\"taddr\", ...]}\n"
-            "\nReturns all mempool deltas for an address.\n"
-            + disabledMsg +
+            "\nReturns all mempool deltas for an address.\n" +
+            disabledMsg +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\":\n"
@@ -934,14 +958,12 @@ UniValue getaddressmempool(const UniValue& params, bool fHelp)
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"]}'")
-            + HelpExampleRpc("getaddressmempool", "{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"]}")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"]}'") + HelpExampleRpc("getaddressmempool", "{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"]}"));
 
     if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Error: getaddressmempool is disabled. "
-            "Run './zcash-cli help getaddressmempool' for instructions on how to enable this feature.");
+                                           "Run './zcash-cli help getaddressmempool' for instructions on how to enable this feature.");
     }
 
     std::vector<std::pair<uint160, int>> addresses;
@@ -952,10 +974,10 @@ UniValue getaddressmempool(const UniValue& params, bool fHelp)
     std::vector<std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta>> indexes;
     mempool.getAddressIndex(addresses, indexes);
     std::sort(indexes.begin(), indexes.end(),
-        [](const std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta>& a,
-           const std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta>& b) -> bool {
-               return a.second.time < b.second.time;
-           });
+              [](const std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta>& a,
+                 const std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta>& b) -> bool {
+                  return a.second.time < b.second.time;
+              });
 
     UniValue result(UniValue::VARR);
 
@@ -990,8 +1012,8 @@ UniValue getaddressutxos(const UniValue& params, bool fHelp)
     if (fHelp || params.size() != 1)
         throw runtime_error(
             "getaddressutxos {\"addresses\": [\"taddr\", ...], (\"chainInfo\": true|false)}\n"
-            "\nReturns all unspent outputs for an address.\n"
-            + disabledMsg +
+            "\nReturns all unspent outputs for an address.\n" +
+            disabledMsg +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\":\n"
@@ -1030,14 +1052,12 @@ UniValue getaddressutxos(const UniValue& params, bool fHelp)
             "  \"hash\"              (string)  The block hash\n"
             "  \"height\"            (numeric) The block height\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"], \"chainInfo\": true}'")
-            + HelpExampleRpc("getaddressutxos", "{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"], \"chainInfo\": true}")
-            );
+            "\nExamples:\n" +
+            HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"], \"chainInfo\": true}'") + HelpExampleRpc("getaddressutxos", "{\"addresses\": [\"tmYXBYJj1K7vhejSec5osXK2QsGa5MTisUQ\"], \"chainInfo\": true}"));
 
     if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Error: getaddressutxos is disabled. "
-            "Run './zcash-cli help getaddressutxos' for instructions on how to enable this feature.");
+                                           "Run './zcash-cli help getaddressutxos' for instructions on how to enable this feature.");
     }
 
     bool includeChainInfo = false;
@@ -1058,9 +1078,9 @@ UniValue getaddressutxos(const UniValue& params, bool fHelp)
         }
     }
     std::sort(unspentOutputs.begin(), unspentOutputs.end(),
-        [](const CAddressUnspentDbEntry& a, const CAddressUnspentDbEntry& b) -> bool {
-            return a.second.blockHeight < b.second.blockHeight;
-        });
+              [](const CAddressUnspentDbEntry& a, const CAddressUnspentDbEntry& b) -> bool {
+                  return a.second.blockHeight < b.second.blockHeight;
+              });
 
     UniValue utxos(UniValue::VARR);
     for (const auto& it : unspentOutputs) {
@@ -1085,7 +1105,7 @@ UniValue getaddressutxos(const UniValue& params, bool fHelp)
     UniValue result(UniValue::VOBJ);
     result.pushKV("utxos", utxos);
 
-    LOCK(cs_main);  // for chainActive
+    LOCK(cs_main); // for chainActive
     result.pushKV("hash", chainActive.Tip()->GetBlockHash().GetHex());
     result.pushKV("height", (int)chainActive.Height());
     return result;
