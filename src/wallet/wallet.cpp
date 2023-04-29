@@ -2521,8 +2521,11 @@ CAmount CWalletTx::GetLockedCredit() const
         // Add locked coins
         if (pwallet->IsLockedCoin(hashTx, i)) {
             // move to get masternode coin
-            // nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
-            continue;
+            if (!NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+                nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
+            } else {
+                continue;
+            }
         }
 
         // Add masternode collaterals which are handled likc locked coins
@@ -4066,8 +4069,9 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
                 int lastBlock = 0;
                 COutPoint prevout(pcoin->vout[i].GetHash(), i);
                 CTxIn vin(prevout);
+                GetLastPaymentBlock(vin, lastBlock);
                 if (
-                    GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    lastBlock > 0 && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
                     found = true;
                 }
 

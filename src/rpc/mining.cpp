@@ -13,6 +13,7 @@
 #endif
 #include "init.h"
 #include "main.h"
+#include "masternode-sync.h"
 #include "metrics.h"
 #include "miner.h"
 #include "net.h"
@@ -376,6 +377,10 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
 
     if (IsInitialBlockDownload(Params().GetConsensus()))
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Gemlink is downloading blocks...");
+
+    if (masternodeSync.IsSynced()) {
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Gemlink is syncing masternode.");
+    }
 
     static unsigned int nTransactionsUpdatedLast;
 

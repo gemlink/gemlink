@@ -200,7 +200,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     }
 
     addressbalance.push_back(addrlist);
-    returnObj.push_back(Pair("addressbalance", addressbalance));
+    // returnObj.push_back(Pair("addressbalance", addressbalance));
     returnObj.push_back(Pair("addressbalancev2", addrlist));
 
 
