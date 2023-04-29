@@ -286,7 +286,7 @@ int64_t CMasternode::GetLastPaid()
 
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
         // store history for 15 days
-        nMnCount = std::max(nMnCount, 1440 * 15);
+        nMnCount = std::max(nMnCount, 0);
     }
 
     int n = 0;

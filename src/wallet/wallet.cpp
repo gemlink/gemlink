@@ -3988,7 +3988,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                 } else if (!pcoin->IsCoinBase() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
                     int lastTime = 0;
                     CMasternode* pmn = mnodeman.Find(pcoin->vout[i].scriptPubKey);
-                    if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN && GetLastPaymentBlock(pmn->vin.prevout.hash, pcoin->vout[i].scriptPubKey, lastTime)) {
+                    if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN && GetLastPaymentBlock(pmn->vin, pcoin->vout[i].scriptPubKey, lastTime)) {
                         continue;
                     } else {
                         found = true;
@@ -4068,7 +4068,7 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
                 CMasternode* pmn = mnodeman.Find(pcoin->vout[i].scriptPubKey);
                 if (pmn && pmn->vin.prevout.n == i && pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN) {
                     if (
-                        GetLastPaymentBlock(pmn->vin.prevout.hash, pcoin->vout[i].scriptPubKey, lastTime) && lastTime + Params().GetMnLockTime() > GetTime()) {
+                        GetLastPaymentBlock(pmn->vin, pcoin->vout[i].scriptPubKey, lastTime) && lastTime + Params().GetMnLockTime() > GetTime()) {
                         found = true;
                     }
                 }

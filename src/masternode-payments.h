@@ -237,6 +237,7 @@ public:
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
     std::map<COutPoint, int> mapMasternodesLastVote; // prevout.hash + prevout.n, nBlockHeight
 
+    std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeList;
     CMasternodePayments()
     {
         nLastBlockHeight = 0;
@@ -256,6 +257,11 @@ public:
     void CleanPaymentList();
 
     bool GetMasternodePaymentWinner(int nBlockHeight, CScript payee, CTxIn vin, CMasternodePaymentWinner& winner);
+    bool GetMasternodePaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner);
+
+    void UpdatePayeeList();
+    void UpdatePayeeList(CMasternodePaymentWinner winner);
+
     bool GetBlockPayee(int nBlockHeight, CScript& payee);
     bool IsTransactionValid(const CChainParams& chainparams, const CTransaction& txNew, int nBlockHeight);
     bool IsScheduled(CMasternode& mn, int nNotBlockHeight);

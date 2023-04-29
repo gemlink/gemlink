@@ -2630,38 +2630,13 @@ bool CheckMnTx(
 
     if (!tx.IsCoinBase()) {
         for (const CTxIn vin : tx.vin) {
-            // check if it's mn collateral
-            uint256 hashBlock = uint256();
-            CTransaction txVin;
-            if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
-                if (txVin.IsCoinBase())
-                    continue;
-                CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
-                if (pblockindex == NULL)
-                    continue;
-                CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
-                bool found = false;
-                CScript scriptPubKey;
-                for (unsigned int i = 0; i < txVin.vout.size(); i++) {
-                    if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
-                        scriptPubKey = txVin.vout[i].scriptPubKey;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (found) {
-                    int nTime = 0;
-
-                    if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, nTime)) {
-                        // find last mn payment
-                        int delta = chainActive.Tip()->nTime - nTime;
-                        if (delta < Params().GetMnLockTime()) {
-                            LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                            return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
-                                             REJECT_INVALID, "bad-txns-lock");
-                        }
-                    }
+            CMasternodePaymentWinner winner;
+            if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
+                int delta = chainActive.Tip()->nTime - chainActive[winner.nBlockHeight]->nTime;
+                if (delta < Params().GetMnLockTime()) {
+                    LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
+                    return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
+                                     REJECT_INVALID, "bad-txns-lock");
                 }
             }
         }
@@ -7312,65 +7287,13 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
     return mtx;
 }
 
-bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime)
+bool GetLastPaymentBlock(CTxIn vin, CScript address, int& lastTime)
 {
-    return true;
-    // CBlockIndex* pindexSlow = NULL;
-
-    // LOCK(cs_main);
-
-    // CTransaction txOut;
-    // if (mempool.lookup(hash, txOut)) {
-    //     return true;
-    // }
-
-    // int nHeight = -1;
-    // {
-    //     CCoinsViewCache& view = *pcoinsTip;
-    //     const CCoins* coins = view.AccessCoins(hash);
-    //     if (coins)
-    //         nHeight = coins->nHeight;
-    // }
-
-    // nHeight = std::max(nHeight, chainActive.Tip()->nHeight - (int)(Params().GetMnLockTime() / 60));
-    // int scanHeight = chainActive.Height();
-
-    // int lastPayment = 0;
-    // uint160 hashBytes;
-    // int type = 0;
-
-    // CTxDestination address1;
-    // ExtractDestination(address, address1);
-
-    // KeyIO keyIO(Params());
-    // CTxDestination address2 = keyIO.DecodeDestination(keyIO.EncodeDestination(address1));
-
-    // if (IsKeyDestination(address2)) {
-    //     auto x = std::get_if<CKeyID>(&address2);
-    //     memcpy(&hashBytes, x->begin(), 20);
-    //     type = CScript::P2PKH;
-    // } else if (IsScriptDestination(address2)) {
-    //     auto x = std::get_if<CScriptID>(&address2);
-    //     memcpy(&hashBytes, x->begin(), 20);
-    //     type = CScript::P2SH;
-    // } else {
-    //     return false;
-    // }
-
-    // std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
-
-    // while (scanHeight > nHeight) {
-    //     if (GetAddressIndexMN(hashBytes, type, addressIndex, scanHeight - 10, scanHeight)) {
-    //         int lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
-    //         if (lastHeight > 0) {
-    //             lastTime = chainActive[lastHeight]->GetBlockTime();
-    //             return true;
-    //         }
-
-    //         return false;
-    //     }
-    //     scanHeight -= 10;
-    // }
+    CMasternodePaymentWinner winner;
+    if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
+        lastTime = chainActive[winner.nBlockHeight]->nTime;
+        return true;
+    }
 
     return false;
 }

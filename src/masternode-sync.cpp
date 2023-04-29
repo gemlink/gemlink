@@ -398,7 +398,7 @@ void CMasternodeSync::Process()
                     return;
 
                 int nMnCount = mnodeman.CountEnabled();
-                nMnCount = std::max(nMnCount, 15 * 1440);
+                nMnCount = std::max(nMnCount, 0);
                 pnode->PushMessage("mnget", nMnCount); // sync payees
                 RequestedMasternodeAttempt++;
 

@@ -1858,6 +1858,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
         else
             LogPrintf("file format is unknown or invalid, please fix it manually\n");
+    } else if (readResult3 == CMasternodePaymentDB::Ok) {
+        masternodePayments.UpdatePayeeList();
     }
 
     if ((fMasterNode || masternodeConfig.getCount() > -1) && fTxIndex == false) {

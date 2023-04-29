@@ -119,7 +119,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
 
             int ntime = 0;
             int curr = GetTime();
-            bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, ntime);
+            bool result = GetLastPaymentBlock(s.second.vin, scriptPubKey, ntime);
             // LogPrintf("Get masternode result %d", result);
             int lockTime = ntime + Params().GetMnLockTime();
             lockTime = lockTime > curr ? lockTime : 0;
@@ -808,6 +808,58 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
         }
 
         ret.push_back(obj);
+    }
+
+    return ret;
+}
+
+
+UniValue getmasternodepayments(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "getmasternodepayments\n"
+            "\nPrint the masternode payments for the last n blocks\n"
+
+            "\nArguments:\n"
+
+            "\nResult (single winner):\n"
+            "[\n"
+            "  {\n"
+            "    \"nHeight\": n,           (numeric) block height\n"
+            "    \"winner\": {\n"
+            "      \"address\": \"xxxx\",    (string) SnowGem MN Address\n"
+            "      \"tx hash\": n,          (numeric) String\n"
+            "      \"tx index\": n,          (numeric) Number\n"
+            "    }\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("getmasternodepayments", "") + HelpExampleRpc("getmasternodepayments", ""));
+
+    int nHeight = WITH_LOCK(cs_main, return chainActive.Height());
+    if (nHeight < 0)
+        return "[]";
+
+    UniValue ret(UniValue::VARR);
+
+    KeyIO keyIO(Params());
+    std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeList.begin();
+    while (it != masternodePayments.mapMasternodePayeeList.end()) {
+        UniValue obj(UniValue::VOBJ);
+
+        CTxDestination address1;
+        ExtractDestination(it->second.payee, address1);
+
+        obj.push_back(Pair("nHeight", it->second.nBlockHeight));
+        obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+        obj.push_back(Pair("hash", it->second.vinMasternode.prevout.hash.ToString()));
+        obj.push_back(Pair("idx", (uint64_t)it->second.vinMasternode.prevout.n));
+
+        ret.push_back(obj);
+        it++;
     }
 
     return ret;

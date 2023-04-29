@@ -318,6 +318,7 @@ static const CRPCCommand vRPCCommands[] =
         {"gemlink", "listmasternodeconf", &listmasternodeconf, true},
         {"gemlink", "getmasternodestatus", &getmasternodestatus, true},
         {"gemlink", "getmasternodewinners", &getmasternodewinners, true},
+        {"gemlink", "getmasternodepayments", &getmasternodepayments, true},
         {"gemlink", "getmasternodescores", &getmasternodescores, true},
         {"gemlink", "mnbudget", &mnbudget, true},
         {"gemlink", "preparebudget", &preparebudget, true},
