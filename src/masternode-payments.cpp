@@ -588,10 +588,10 @@ void CMasternodePayments::UpdatePayeeList()
 {
     std::map<uint256, CMasternodePaymentWinner>::iterator it = mapMasternodePayeeVotes.begin();
     while (it != mapMasternodePayeeVotes.end()) {
-        if (it->second.nBlockHeight >= chainActive.Height()) {
-            ++it;
-            continue;
-        }
+        // if (it->second.nBlockHeight >= chainActive.Height()) {
+        //     ++it;
+        //     continue;
+        // }
         LogPrint("masternode1", "new height check %d", it->second.nBlockHeight);
         uint256 hash = it->second.vinPayee.prevout.GetHash();
         if (!mapMasternodePayeeList.count(hash)) {
@@ -614,20 +614,20 @@ void CMasternodePayments::UpdatePayeeList(CMasternodePaymentWinner winner)
     CTxDestination address1;
     ExtractDestination(winner.payee, address1);
 
-    if (winner.nBlockHeight < chainActive.Height()) {
-        LogPrint("masternode1", "new height check 2 %d payee %s hash %s tx %s idx %d", winner.nBlockHeight, keyIO.EncodeDestination(address1), hash.ToString(), winner.vinPayee.prevout.hash.ToString(), winner.vinPayee.prevout.n);
-        if (!mapMasternodePayeeList.count(hash)) {
-            LogPrint("masternode1", "new height check 4 %d", winner.nBlockHeight);
+    // if (winner.nBlockHeight < chainActive.Height()) {
+    LogPrint("masternode1", "new height check 2 %d payee %s hash %s tx %s idx %d", winner.nBlockHeight, keyIO.EncodeDestination(address1), hash.ToString(), winner.vinPayee.prevout.hash.ToString(), winner.vinPayee.prevout.n);
+    if (!mapMasternodePayeeList.count(hash)) {
+        LogPrint("masternode1", "new height check 4 %d", winner.nBlockHeight);
+        mapMasternodePayeeList[hash] = winner;
+    } else {
+        if (mapMasternodePayeeList[hash].nBlockHeight < winner.nBlockHeight) {
+            LogPrint("masternode1", "new height check 3 %d", winner.nBlockHeight);
             mapMasternodePayeeList[hash] = winner;
         } else {
-            if (mapMasternodePayeeList[hash].nBlockHeight < winner.nBlockHeight) {
-                LogPrint("masternode1", "new height check 3 %d", winner.nBlockHeight);
-                mapMasternodePayeeList[hash] = winner;
-            } else {
-                LogPrint("masternode1", "new height check duplicate %d %d", mapMasternodePayeeList[hash].nBlockHeight, winner.nBlockHeight);
-            }
+            LogPrint("masternode1", "new height check duplicate %d %d", mapMasternodePayeeList[hash].nBlockHeight, winner.nBlockHeight);
         }
     }
+    // }
 }
 
 bool CMasternodePayments::GetMasternodePaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner)

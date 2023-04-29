@@ -754,8 +754,8 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
                 }
                 if (success) {
                     UniValue vin(UniValue::VOBJ);
-                    vin.push_back(Pair("hash", winner.vinMasternode.prevout.hash.ToString()));
-                    vin.push_back(Pair("idx", (uint64_t)winner.vinMasternode.prevout.n));
+                    vin.push_back(Pair("hash", winner.vinPayee.prevout.hash.ToString()));
+                    vin.push_back(Pair("idx", (uint64_t)winner.vinPayee.prevout.n));
                     obj.push_back(Pair("vin", vin));
                 }
             }
@@ -788,8 +788,8 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
                 }
                 if (success) {
                     UniValue vin(UniValue::VOBJ);
-                    vin.push_back(Pair("hash", winner.vinMasternode.prevout.hash.ToString()));
-                    vin.push_back(Pair("idx", (uint64_t)winner.vinMasternode.prevout.n));
+                    vin.push_back(Pair("hash", winner.vinPayee.prevout.hash.ToString()));
+                    vin.push_back(Pair("idx", (uint64_t)winner.vinPayee.prevout.n));
                     obj.push_back(Pair("vin", vin));
                 }
             }
