@@ -1215,7 +1215,6 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVeri
                                  REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
         }
-        return true;
     }
 
     if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
@@ -1223,6 +1222,8 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVeri
             return error("AcceptToMemoryPool: CheckMnTx failed %s", tx.GetHash().ToString());
         }
     }
+
+    return true;
 }
 
 bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidationState& state)
