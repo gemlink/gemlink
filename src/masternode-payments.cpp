@@ -584,6 +584,7 @@ void CMasternodePayments::UpdatePayeeList()
     std::map<uint256, CMasternodePaymentWinner>::iterator it = mapMasternodePayeeVotes.begin();
     while (it != mapMasternodePayeeVotes.end()) {
         if (it->second.nBlockHeight >= chainActive.Height()) {
+            ++it;
             continue;
         }
         LogPrint("masternode1", "new height check %d", it->second.nBlockHeight);
