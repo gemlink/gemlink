@@ -1075,6 +1075,13 @@ bool ContextualCheckTransaction(
                              REJECT_INVALID, "bad-txns-oversize");
     }
 
+    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
+        if (!CheckMnTx(tx)) {
+            return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
+                             REJECT_INVALID, "bad-txns-lock");
+        }
+    }
+
     auto prevConsensusBranchId = PrevEpochBranchId(consensusBranchId, consensus);
     uint256 dataToBeSigned;
     uint256 prevDataToBeSigned;
@@ -1214,12 +1221,6 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVeri
                 return state.DoS(100, error("CheckTransaction(): joinsplit does not verify"),
                                  REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
-        }
-    }
-
-    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
-        if (!CheckMnTx(tx, state)) {
-            return error("AcceptToMemoryPool: CheckMnTx failed %s", tx.GetHash().ToString());
         }
     }
 
@@ -2621,8 +2622,7 @@ bool ContextualCheckInputs(
 
 
 bool CheckMnTx(
-    const CTransaction& tx,
-    CValidationState& state)
+    const CTransaction& tx)
 {
     if (!masternodeSync.IsSynced()) {
         LogPrint("masternodepayments", "Client not synced, skipping mn collateral check\n");
@@ -2635,8 +2635,7 @@ bool CheckMnTx(
             if (GetLastPaymentBlock(vin, nHeight)) {
                 if (nHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
                     LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                    return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
-                                     REJECT_INVALID, "bad-txns-lock");
+                    return false;
                 }
             }
         }
