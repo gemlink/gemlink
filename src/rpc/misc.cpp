@@ -255,6 +255,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         trans.push_backV(arrTmp);
     }
 
+
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
         vector<COutput> vCoins;
         pwalletMain->MasternodeCoins(vCoins);
@@ -263,7 +264,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
             UniValue mnList(UniValue::VARR);
             for (COutput v : vCoins) {
                 int lastHeight = 0;
-                COutPoint prevout(v.tx->vout[v.i].GetHash(), v.i);
+                COutPoint prevout(v.tx->GetHash(), v.i);
                 CTxIn vin(prevout);
                 GetLastPaymentBlock(vin, lastHeight);
 
@@ -276,11 +277,11 @@ UniValue getalldata(const UniValue& params, bool fHelp)
             returnObj.push_back(Pair("lockedtxs", mnList));
         }
     }
-
     returnObj.push_back(Pair("listtransactions", trans));
     returnObj.push_back(Pair("isencrypted", pwalletMain->IsCrypted()));
     returnObj.push_back(Pair("islocked", pwalletMain->IsLocked()));
 #endif
+
 
     return returnObj;
 }

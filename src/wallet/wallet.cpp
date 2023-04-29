@@ -3992,7 +3992,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                     found = pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
                 } else if (!pcoin->IsCoinBase() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
                     int lastBlock = 0;
-                    COutPoint prevout(pcoin->vout[i].GetHash(), i);
+                    COutPoint prevout(pcoin->GetHash(), i);
                     CTxIn vin(prevout);
                     if (GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
                         continue;
@@ -4067,11 +4067,10 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
                 bool found = false;
                 int lastBlock = 0;
-                COutPoint prevout(pcoin->vout[i].GetHash(), i);
+                COutPoint prevout(pcoin->GetHash(), i);
                 CTxIn vin(prevout);
-                GetLastPaymentBlock(vin, lastBlock);
                 if (
-                    lastBlock > 0 && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
                     found = true;
                 }
 
