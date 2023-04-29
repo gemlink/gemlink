@@ -209,7 +209,7 @@ public:
         } catch (...) {
             nMessVersion = MessageVersion::MESS_VER_STRMESS;
         }
-        if (NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        if (nBlockHeight > 0 && NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
             READWRITE(vinPayee);
         }
     }

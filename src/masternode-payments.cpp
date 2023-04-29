@@ -176,7 +176,7 @@ uint256 CMasternodePaymentWinner::GetHash() const
     ss << std::vector<unsigned char>(payee.begin(), payee.end());
     ss << nBlockHeight;
     ss << vinMasternode.prevout;
-    bool fNewSigs = NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR);
+    bool fNewSigs = nBlockHeight > 0 ? NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR) : false;
     if (fNewSigs) {
         ss << vinPayee.prevout;
     }
