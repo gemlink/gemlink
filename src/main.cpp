@@ -7337,11 +7337,6 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
 
     LOCK(cs_main);
 
-    CTransaction txOut;
-    if (mempool.lookup(hash, txOut)) {
-        return true;
-    }
-
     int nHeight = -1;
     {
         CCoinsViewCache& view = *pcoinsTip;
@@ -7351,8 +7346,12 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
     }
 
     int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks());
+    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
     int scanHeight = chainActive.Height();
 
+    if (lastScanHeight > scanHeight) {
+        return false;
+    }
     int lastPayment = 0;
     uint160 hashBytes;
     int type = 0;
@@ -7377,7 +7376,7 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
 
     std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
 
-    while (scanHeight > lastScanHeight) {
+    while (scanHeight >= lastScanHeight) {
         if (GetAddressIndexMN(hashBytes, type, addressIndex, std::max(scanHeight - 10, lastScanHeight), scanHeight)) {
             lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
             return true;

@@ -588,6 +588,12 @@ void CMasternodePayments::UpdatePayeeList()
 {
     std::map<uint256, CMasternodePaymentWinner>::iterator it = mapMasternodePayeeVotes.begin();
     while (it != mapMasternodePayeeVotes.end()) {
+        if (it->second.nBlockHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight ||
+            it->second.nBlockHeight > chainActive.Height() || it->second.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks()) {
+            ++it;
+            continue;
+        }
+
         uint256 hash = it->second.vinPayee.prevout.GetHash();
         if (!mapMasternodePayeeList.count(hash)) {
             mapMasternodePayeeList[hash] = it->second;
@@ -603,11 +609,8 @@ void CMasternodePayments::UpdatePayeeList()
 
 void CMasternodePayments::UpdatePayeeList(CMasternodePaymentWinner winner)
 {
-    if (winner.nBlockHeight > chainActive.Height()) {
-        return;
-    }
-
-    if (winner.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks()) {
+    if (winner.nBlockHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight ||
+        (winner.nBlockHeight > chainActive.Height() || winner.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks())) {
         return;
     }
 

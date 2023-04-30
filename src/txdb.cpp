@@ -481,7 +481,7 @@ bool CBlockTreeDB::ReadAddressIndexMN(
     boost::scoped_ptr<CDBIterator> pcursor(NewIterator());
 
     if (start > end) {
-        return error("start must be smaller than end");
+        return error("start must be smaller or equal end");
     }
 
     pcursor->Seek(make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorHeightKey(type, addressHash, start)));
