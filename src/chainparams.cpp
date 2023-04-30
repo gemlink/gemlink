@@ -324,7 +324,7 @@ public:
         bip44CoinType = 1;
         consensus.fCoinbaseMustBeProtected = true;
         consensus.nSubsidySlowStartInterval = 8000;
-        consensus.nSubsidyHalvingInterval = 3600; // halving at block 81380
+        consensus.nSubsidyHalvingInterval = 3700; // halving at block 81480
         consensus.nMajorityEnforceBlockUpgrade = 51;
         consensus.nMajorityRejectBlockOutdated = 75;
         consensus.nMajorityWindow = 400;
@@ -359,7 +359,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 77780;
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 81180; // 2022, Feb 14
+        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 81250; // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
