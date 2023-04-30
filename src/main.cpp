@@ -83,7 +83,7 @@ bool fExperimentalMode = false;
 bool fImporting = false;
 bool fReindex = false;
 bool fTxIndex = false;
-bool fAddressIndex = false;
+bool fAddressIndex = true; // enable address index by default to support mn collateral check faster
 bool fTimestampIndex = false;
 bool fSpentIndex = false;
 bool fHavePruned = false;
@@ -980,6 +980,7 @@ bool ContextualCheckTransaction(
     bool saplingActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_SAPLING);
     bool atlantisActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS);
     bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
+    bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -1075,7 +1076,7 @@ bool ContextualCheckTransaction(
                              REJECT_INVALID, "bad-txns-oversize");
     }
 
-    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
+    if (xandarActive) {
         if (!CheckMnTx(tx)) {
             return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
                              REJECT_INVALID, "bad-txns-lock");
