@@ -457,7 +457,7 @@ public:
         masternodeProtectionBlock = 7900;
         masternodeCollateral = 10;
         masternodeCollateralNew = 20;
-        mnLockBlocks = 50; // count from the last mn payent
+        mnLockBlocks = 10; // count from the last mn payent
     }
 };
 static CTestNetParams testNetParams;
