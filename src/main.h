@@ -850,6 +850,7 @@ bool GetTimestampIndex(const unsigned int& high, const unsigned int& low, const 
 bool GetSpentIndex(CSpentIndexKey& key, CSpentIndexValue& value);
 bool GetAddressIndex(uint160 addressHash, int type, std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex, int start = 0, int end = 0);
 bool GetAddressIndex(uint160 addressHash, int start, int end, int& blockHeight);
+bool GetAddressIndexMN(uint160 addressHash, int type, std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex, int start, int end);
 bool GetAddressUnspent(uint160 addressHash, int type, std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& unspentOutputs);
 
 /** Functions for disk access for blocks */
@@ -955,4 +956,5 @@ void SetChainNotifiedSequence(const CChainParams& chainparams, uint64_t recently
 bool ChainIsFullyNotified(const CChainParams& chainparams);
 
 bool GetLastPaymentBlock(CTxIn vin, int& lastHeight);
+bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime);
 #endif // BITCOIN_MAIN_H

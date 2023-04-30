@@ -118,8 +118,15 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             CScript scriptPubKey = GetScriptForDestination(address);
 
             int nHeight = 0;
-            int curr = GetTime();
+
+            // ver 1 - get from network
             bool result = GetLastPaymentBlock(s.second.vin, nHeight);
+
+            // ver 2 - get locally
+            // CTxDestination address = keyIO.DecodeDestination(keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
+            // CScript scriptPubKey = GetScriptForDestination(address);
+            // bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, nHeight);
+
             // LogPrintf("Get masternode result %d", result);
             int unlockHeight = chainActive.Height() > nHeight + Params().GetmnLockBlocks() ? 0 : nHeight + Params().GetmnLockBlocks();
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));

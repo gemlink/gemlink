@@ -603,6 +603,14 @@ void CMasternodePayments::UpdatePayeeList()
 
 void CMasternodePayments::UpdatePayeeList(CMasternodePaymentWinner winner)
 {
+    if (winner.nBlockHeight > chainActive.Height()) {
+        return;
+    }
+
+    if (winner.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks()) {
+        return;
+    }
+
     uint256 hash = winner.vinPayee.prevout.GetHash();
     KeyIO keyIO(Params());
 

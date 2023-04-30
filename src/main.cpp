@@ -2624,18 +2624,50 @@ bool ContextualCheckInputs(
 bool CheckMnTx(
     const CTransaction& tx)
 {
-    if (!masternodeSync.IsSynced()) {
-        LogPrint("masternodepayments", "Client not synced, skipping mn collateral check\n");
-        return true;
-    }
-
     if (!tx.IsCoinBase()) {
-        for (const CTxIn vin : tx.vin) {
-            int nHeight = 0;
-            if (GetLastPaymentBlock(vin, nHeight)) {
-                if (nHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
-                    LogPrint("masternode", "try to create tx with active mn collateral or locking - vin: %s\n", vin.ToString());
-                    return false;
+        if (masternodeSync.IsSynced()) {
+            for (const CTxIn vin : tx.vin) {
+                int lastHeight = 0;
+                if (GetLastPaymentBlock(vin, lastHeight)) {
+                    if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                        LogPrint("masternode", "try to create tx with active mn collateral or locking 1 - vin: %s\n", vin.ToString());
+                        return false;
+                    }
+                }
+            }
+        } else {
+            for (const CTxIn vin : tx.vin) {
+                // check if it's mn collateral
+                uint256 hashBlock = uint256();
+                CTransaction txVin;
+
+                // get transactino for tx
+                if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
+                    if (txVin.IsCoinBase())
+                        continue;
+                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
+                    if (pblockindex == NULL)
+                        continue;
+                    CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
+                    bool found = false;
+                    CScript scriptPubKey;
+                    for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+                        if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
+                            scriptPubKey = txVin.vout[i].scriptPubKey;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        int lastHeight = 0;
+                        if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, lastHeight)) {
+                            if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                                LogPrint("masternode", "try to create tx with active mn collateral or locking 2 - vin: %s\n", vin.ToString());
+                                return false;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -7292,6 +7324,64 @@ bool GetLastPaymentBlock(CTxIn vin, int& lastHeight)
     if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
         lastHeight = winner.nBlockHeight;
         return true;
+    }
+
+    return false;
+}
+
+
+bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
+{
+    CBlockIndex* pindexSlow = NULL;
+
+    LOCK(cs_main);
+
+    CTransaction txOut;
+    if (mempool.lookup(hash, txOut)) {
+        return true;
+    }
+
+    int nHeight = -1;
+    {
+        CCoinsViewCache& view = *pcoinsTip;
+        const CCoins* coins = view.AccessCoins(hash);
+        if (coins)
+            nHeight = coins->nHeight;
+    }
+
+    int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks());
+    int scanHeight = chainActive.Height();
+
+    int lastPayment = 0;
+    uint160 hashBytes;
+    int type = 0;
+
+    CTxDestination address1;
+    ExtractDestination(address, address1);
+
+    KeyIO keyIO(Params());
+    CTxDestination address2 = keyIO.DecodeDestination(keyIO.EncodeDestination(address1));
+
+    if (IsKeyDestination(address2)) {
+        auto x = std::get_if<CKeyID>(&address2);
+        memcpy(&hashBytes, x->begin(), 20);
+        type = CScript::P2PKH;
+    } else if (IsScriptDestination(address2)) {
+        auto x = std::get_if<CScriptID>(&address2);
+        memcpy(&hashBytes, x->begin(), 20);
+        type = CScript::P2SH;
+    } else {
+        return false;
+    }
+
+    std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
+
+    while (scanHeight > lastScanHeight) {
+        if (GetAddressIndexMN(hashBytes, type, addressIndex, std::max(scanHeight - 10, lastScanHeight), scanHeight)) {
+            lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
+            return true;
+        }
+        scanHeight -= 10;
     }
 
     return false;
