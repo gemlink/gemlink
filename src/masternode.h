@@ -268,11 +268,6 @@ public:
         return activeState == MASTERNODE_ENABLED || activeState == MASTERNODE_PRE_ENABLED;
     }
 
-    bool IsExpiring() const
-    {
-        return activeState == MASTERNODE_EXPIRED;
-    }
-
     std::string Status()
     {
         std::string strStatus = "ACTIVE";
