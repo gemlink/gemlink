@@ -683,7 +683,9 @@ bool CMasternodePayments::AddWinningMasternode(CMasternodePaymentWinner& winnerI
         ExtractDestination(winnerIn.payee, address1);
 
         mapMasternodePayeeVotes[winnerIn.GetHash()] = winnerIn;
-        UpdatePayeeList(winnerIn);
+        if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
+            UpdatePayeeList(winnerIn);
+        }
         if (!mapMasternodeBlocks.count(winnerIn.nBlockHeight)) {
             CMasternodeBlockPayees blockPayees(winnerIn.nBlockHeight);
             mapMasternodeBlocks[winnerIn.nBlockHeight] = blockPayees;

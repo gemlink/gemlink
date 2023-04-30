@@ -1859,7 +1859,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         else
             LogPrintf("file format is unknown or invalid, please fix it manually\n");
     } else if (readResult3 == CMasternodePaymentDB::Ok) {
-        masternodePayments.UpdatePayeeList();
+        if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_XANDAR)) {
+            masternodePayments.UpdatePayeeList();
+        }
     }
 
     if ((fMasterNode || masternodeConfig.getCount() > -1) && fTxIndex == false) {
