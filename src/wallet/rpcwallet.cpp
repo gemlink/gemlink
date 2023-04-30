@@ -96,9 +96,9 @@ void ThrowIfInitialBlockDownload()
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Error: Sending transactions is not supported during initial block download.");
     }
 
-    if (!masternodeSync.IsSynced()) {
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Error: Sending transactions is not supported during masternode syncing.");
-    }
+    // if (!masternodeSync.IsSynced()) {
+    //     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Error: Sending transactions is not supported during masternode syncing.");
+    // }
 }
 
 void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
