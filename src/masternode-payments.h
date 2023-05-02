@@ -242,20 +242,10 @@ public:
     {
         vinMasternode = w.vinMasternode;
         payee = w.payee;
-        blocks.push_front(w.nBlockHeight);
+        blocks.push_back(w.nBlockHeight);
     }
 
-    void AddBlock(int height)
-    {
-        int currHeight = chainActive.Height();
-        std::list<int>::iterator it = std::find_if(blocks.begin(), blocks.end(), [currHeight](int vi) { return vi <= currHeight; });
-        if (it != blocks.end()) {
-            blocks.erase(std::remove_if(blocks.begin(),
-                                        blocks.end(),
-                                        [it](int x) { return x < *it; }),
-                         blocks.end());
-        }
-    }
+    void AddBlock(int height);
 };
 
 class CMasternodePayments

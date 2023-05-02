@@ -940,3 +940,19 @@ std::string CMasternodePayments::ToString() const
 
     return info.str();
 }
+
+
+void PayeeInfo::AddBlock(int height)
+{
+    auto it2 = std::find(blocks.begin(), blocks.end(), height);
+    if (it2 == blocks.end())
+        blocks.push_back(height);
+    int currHeight = chainActive.Height();
+    std::list<int>::iterator it = std::find_if(blocks.begin(), blocks.end(), [currHeight](int vi) { return vi <= currHeight; });
+    if (it != blocks.end()) {
+        blocks.erase(std::remove_if(blocks.begin(),
+                                    blocks.end(),
+                                    [it](int x) { return x < *it; }),
+                     blocks.end());
+    }
+}
