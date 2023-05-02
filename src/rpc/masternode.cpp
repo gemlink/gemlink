@@ -746,7 +746,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             continue;
 
         if (strPayment.find(',') != std::string::npos) {
-            if (i < nHeight) {
+            if (i < nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight) {
                 CMasternodePaymentWinner winner;
                 bool success = false;
                 std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
@@ -780,7 +780,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             }
             obj.push_back(Pair("winner", winner));
         } else if (strPayment.find("Unknown") == std::string::npos) {
-            if (i < nHeight) {
+            if (i < nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight) {
                 CMasternodePaymentWinner winner;
                 bool success = false;
                 std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
@@ -872,21 +872,63 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
             it++;
         }
     } else {
-        vector<COutput> vCoins;
-        pwalletMain->MasternodeCoins(vCoins);
-        for (COutput v : vCoins) {
-            UniValue obj(UniValue::VOBJ);
+        LOCK2(cs_main, pwalletMain->cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
+            const uint256& wtxid = it->first;
+            const CWalletTx* pcoin = &(*it).second;
 
-            CTxDestination address1;
-            ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
+            if (!CheckFinalTx(*pcoin))
+                continue;
 
-            obj.push_back(Pair("nHeight", chainActive.Height() - v.nDepth));
-            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-            obj.push_back(Pair("hash", v.tx->GetHash().ToString()));
-            obj.push_back(Pair("idx", (uint64_t)v.i));
+            if (!pcoin->IsTrusted())
+                continue;
 
-            ret.push_back(obj);
+            if (pcoin->IsCoinBase())
+                continue;
+
+            int nDepth = pcoin->GetDepthInMainChain();
+
+            for (unsigned int j = 0; j < pcoin->vout.size(); j++) {
+                CAmount masternodeCollateral = Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
+
+                CScript scriptPubKey;
+                if (pcoin->vout[j].nValue == masternodeCollateral) {
+                    scriptPubKey = pcoin->vout[j].scriptPubKey;
+
+                    int lastHeight = 0;
+                    if (GetLastPaymentBlock(pcoin->GetHash(), scriptPubKey, lastHeight)) {
+                        if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                            UniValue obj(UniValue::VOBJ);
+
+                            CTxDestination address1;
+                            ExtractDestination(scriptPubKey, address1);
+
+                            obj.push_back(Pair("nHeight", lastHeight));
+                            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+                            obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
+                            obj.push_back(Pair("idx", (uint64_t)j));
+
+                            ret.push_back(obj);
+                        }
+                    }
+                }
+            }
         }
+
+        // vector<COutput> vCoins;
+        // for (COutput v : vCoins) {
+        //     UniValue obj(UniValue::VOBJ);
+
+        //     CTxDestination address1;
+        //     ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
+
+        //     obj.push_back(Pair("nHeight", chainActive.Height() - v.nDepth));
+        //     obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+        //     obj.push_back(Pair("hash", v.tx->GetHash().ToString()));
+        //     obj.push_back(Pair("idx", (uint64_t)v.i));
+
+        //     ret.push_back(obj);
+        // }
     }
     return ret;
 }
