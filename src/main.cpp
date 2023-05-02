@@ -7312,9 +7312,7 @@ bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
 {
     if (masternodeSync.IsSynced() && !forceOffline) {
         LogPrint("masternode", "GetLastPaymentBlock online");
-        CMasternodePaymentWinner winner;
-        if (masternodePayments.GetLastPaymentWinner(vin, winner)) {
-            lastHeight = winner.nBlockHeight;
+        if (masternodePayments.GetLastPaymentWinner(vin, lastHeight)) {
             return true;
         }
     } else {

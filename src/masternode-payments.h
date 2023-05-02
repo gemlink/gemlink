@@ -230,6 +230,34 @@ public:
 // Keeps track of who should get paid for which blocks
 //
 
+class PayeeInfo
+{
+public:
+    CTxIn vinMasternode;
+    CScript payee;
+    std::list<int> blocks;
+    PayeeInfo() {}
+
+    void Update(CMasternodePaymentWinner w)
+    {
+        vinMasternode = w.vinMasternode;
+        payee = w.payee;
+        blocks.push_front(w.nBlockHeight);
+    }
+
+    void AddBlock(int height)
+    {
+        int currHeight = chainActive.Height();
+        std::list<int>::iterator it = std::find_if(blocks.begin(), blocks.end(), [currHeight](int vi) { return vi <= currHeight; });
+        if (it != blocks.end()) {
+            blocks.erase(std::remove_if(blocks.begin(),
+                                        blocks.end(),
+                                        [it](int x) { return x < *it; }),
+                         blocks.end());
+        }
+    }
+};
+
 class CMasternodePayments
 {
 private:
@@ -240,7 +268,7 @@ public:
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
     std::map<COutPoint, int> mapMasternodesLastVote; // prevout.hash + prevout.n, nBlockHeight
 
-    std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeList;
+    std::map<uint256, PayeeInfo> mapMasternodePayeeList;
     CMasternodePayments()
     {
         nLastBlockHeight = 0;
@@ -259,7 +287,7 @@ public:
     void Sync(CNode* node, int nCountNeeded);
     void CleanPaymentList();
 
-    bool GetLastPaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner);
+    bool GetLastPaymentWinner(CTxIn vin, int& height);
 
     void UpdatePayeeList();
     void UpdatePayeeList(CMasternodePaymentWinner winner);

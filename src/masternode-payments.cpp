@@ -578,12 +578,12 @@ void CMasternodePayments::UpdatePayeeList()
     while (it != mapMasternodePayeeVotes.end()) {
         uint256 hash = it->second.vinPayee.prevout.GetHash();
         if (!mapMasternodePayeeList.count(hash)) {
-            mapMasternodePayeeList[hash] = it->second;
+            PayeeInfo payee;
+            payee.Update(it->second);
+            mapMasternodePayeeList[hash] = payee;
 
         } else {
-            if (mapMasternodePayeeList[hash].nBlockHeight < it->second.nBlockHeight) {
-                mapMasternodePayeeList[hash] = it->second;
-            }
+            mapMasternodePayeeList[hash].AddBlock(it->second.nBlockHeight);
         }
         ++it;
     }
@@ -598,21 +598,21 @@ void CMasternodePayments::UpdatePayeeList(CMasternodePaymentWinner winner)
     ExtractDestination(winner.payee, address1);
 
     if (!mapMasternodePayeeList.count(hash)) {
-        mapMasternodePayeeList[hash] = winner;
+        PayeeInfo payee;
+        payee.Update(winner);
+        mapMasternodePayeeList[hash] = payee;
     } else {
-        if (mapMasternodePayeeList[hash].nBlockHeight < winner.nBlockHeight) {
-            mapMasternodePayeeList[hash] = winner;
-        }
+        mapMasternodePayeeList[hash].AddBlock(winner.nBlockHeight);
     }
 }
 
-bool CMasternodePayments::GetLastPaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner)
+bool CMasternodePayments::GetLastPaymentWinner(CTxIn vin, int& height)
 {
     uint256 hash = vin.prevout.GetHash();
     if (mapMasternodePayeeList.count(hash)) {
-        winner = mapMasternodePayeeList[hash];
-        if (winner.nBlockHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL ||
-            (winner.nBlockHeight > chainActive.Height() || winner.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks())) {
+        height = mapMasternodePayeeList[hash].blocks.back();
+        if (height < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL ||
+            (height > chainActive.Height() || height < chainActive.Height() - Params().GetmnLockBlocks())) {
             return false;
         }
         return true;
