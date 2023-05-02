@@ -2144,10 +2144,14 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 
 
     // Subsidy is cut in half every 60 * 24 * 365 * 4 blocks which will occur approximately every 4 years.
-    int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / consensusParams.nSubsidyHalvingInterval;
+    int nSubsidyHalvingInterval = consensusParams.nSubsidyHalvingInterval;
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN && consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
+        nSubsidyHalvingInterval = 3700;
+    }
+    int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / nSubsidyHalvingInterval;
     if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         nSubsidy = 30 * COIN;
-        halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / consensusParams.nSubsidyHalvingInterval;
+        halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / nSubsidyHalvingInterval;
         if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
             nSubsidy += GetPremineAmountAtHeight(nHeight);
         }
