@@ -746,7 +746,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             continue;
 
         if (strPayment.find(',') != std::string::npos) {
-            if (i < nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight) {
+            if (i <= nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL) {
                 CMasternodePaymentWinner winner;
                 bool success = false;
                 std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
@@ -780,7 +780,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             }
             obj.push_back(Pair("winner", winner));
         } else if (strPayment.find("Unknown") == std::string::npos) {
-            if (i < nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight) {
+            if (i <= nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL) {
                 CMasternodePaymentWinner winner;
                 bool success = false;
                 std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();

@@ -259,8 +259,7 @@ public:
     void Sync(CNode* node, int nCountNeeded);
     void CleanPaymentList();
 
-    bool GetMasternodePaymentWinner(int nBlockHeight, CScript payee, CTxIn vin, CMasternodePaymentWinner& winner);
-    bool GetMasternodePaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner);
+    bool GetLastPaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner);
 
     void UpdatePayeeList();
     void UpdatePayeeList(CMasternodePaymentWinner winner);

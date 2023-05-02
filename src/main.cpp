@@ -7313,7 +7313,7 @@ bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
     if (masternodeSync.IsSynced() && !forceOffline) {
         LogPrint("masternode", "GetLastPaymentBlock online");
         CMasternodePaymentWinner winner;
-        if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
+        if (masternodePayments.GetLastPaymentWinner(vin, winner)) {
             lastHeight = winner.nBlockHeight;
             return true;
         }
@@ -7347,7 +7347,7 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
     }
 
     int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks());
-    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
+    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL);
     int scanHeight = chainActive.Height();
 
     if (lastScanHeight > scanHeight) {

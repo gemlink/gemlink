@@ -572,18 +572,6 @@ bool CMasternodePayments::GetBlockPayee(int nBlockHeight, CScript& payee)
     return false;
 }
 
-bool CMasternodePayments::GetMasternodePaymentWinner(int nBlockHeight, CScript payee, CTxIn vin, CMasternodePaymentWinner& winner)
-{
-    CMasternodePaymentWinner tempWinner(vin);
-    tempWinner.AddPayee(payee);
-    tempWinner.nBlockHeight = nBlockHeight;
-    if (mapMasternodePayeeVotes.count(tempWinner.GetHash())) {
-        winner = mapMasternodePayeeVotes[tempWinner.GetHash()];
-        return true;
-    }
-    return false;
-}
-
 void CMasternodePayments::UpdatePayeeList()
 {
     std::map<uint256, CMasternodePaymentWinner>::iterator it = mapMasternodePayeeVotes.begin();
@@ -618,15 +606,15 @@ void CMasternodePayments::UpdatePayeeList(CMasternodePaymentWinner winner)
     }
 }
 
-bool CMasternodePayments::GetMasternodePaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner)
+bool CMasternodePayments::GetLastPaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner)
 {
-    if (winner.nBlockHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight ||
-        (winner.nBlockHeight > chainActive.Height() || winner.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks())) {
-        return false;
-    }
     uint256 hash = vin.prevout.GetHash();
     if (mapMasternodePayeeList.count(hash)) {
         winner = mapMasternodePayeeList[hash];
+        if (winner.nBlockHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL ||
+            (winner.nBlockHeight > chainActive.Height() || winner.nBlockHeight < chainActive.Height() - Params().GetmnLockBlocks())) {
+            return false;
+        }
         return true;
     }
 
