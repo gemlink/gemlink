@@ -119,6 +119,7 @@ public:
         vtx.clear();
         payee = CScript();
         vMerkleTree.clear();
+        payeeVin = COutPoint();
     }
 
     void SetVersion(int32_t version)

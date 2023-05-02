@@ -551,6 +551,10 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         result.push_back(Pair("payee_amount", 0));
     }
 
+    if (pblock->nVersion > CBlockHeader::OLD_VERSION) {
+        result.push_back(Pair("payeeVin", EncodeHexOutPoint(pblock->payeeVin)));
+    }
+
     result.push_back(Pair("masternode_payments", pblock->nTime > Params().StartMasternodePayments() ? "true" : "false"));
     result.push_back(Pair("enforce_masternode_payments", true));
 
