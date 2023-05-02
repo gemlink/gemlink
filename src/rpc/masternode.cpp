@@ -851,85 +851,73 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
     UniValue ret(UniValue::VARR);
 
     KeyIO keyIO(Params());
-    if (type == 0) {
-        std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeList.begin();
-        while (it != masternodePayments.mapMasternodePayeeList.end()) {
-            if (pwalletMain->IsSpent(it->second.vinPayee.prevout.hash, it->second.vinPayee.prevout.n)) {
-                ++it;
-                continue;
-            }
-            UniValue obj(UniValue::VOBJ);
 
-            CTxDestination address1;
-            ExtractDestination(it->second.payee, address1);
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+    for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
+        const uint256& wtxid = it->first;
+        const CWalletTx* pcoin = &(*it).second;
 
-            obj.push_back(Pair("nHeight", it->second.nBlockHeight));
-            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-            obj.push_back(Pair("hash", it->second.vinPayee.prevout.hash.ToString()));
-            obj.push_back(Pair("idx", (uint64_t)it->second.vinPayee.prevout.n));
+        if (!CheckFinalTx(*pcoin))
+            continue;
 
-            ret.push_back(obj);
-            it++;
-        }
-    } else {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
-            const uint256& wtxid = it->first;
-            const CWalletTx* pcoin = &(*it).second;
+        if (!pcoin->IsTrusted())
+            continue;
 
-            if (!CheckFinalTx(*pcoin))
-                continue;
+        if (pcoin->IsCoinBase())
+            continue;
 
-            if (!pcoin->IsTrusted())
-                continue;
+        int nDepth = pcoin->GetDepthInMainChain();
 
-            if (pcoin->IsCoinBase())
-                continue;
+        for (unsigned int j = 0; j < pcoin->vout.size(); j++) {
+            CAmount masternodeCollateral = Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
 
-            int nDepth = pcoin->GetDepthInMainChain();
+            CScript scriptPubKey;
+            if (pcoin->vout[j].nValue == masternodeCollateral) {
+                int lastHeight = 0;
+                scriptPubKey = pcoin->vout[j].scriptPubKey;
+                bool result = false;
+                if (type == 0) {
+                    COutPoint prevout(pcoin->GetHash(), j);
+                    CTxIn vin(prevout);
+                    result = GetLastPaymentBlock(vin, lastHeight);
 
-            for (unsigned int j = 0; j < pcoin->vout.size(); j++) {
-                CAmount masternodeCollateral = Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
+                } else {
+                    result = GetLastPaymentBlock(pcoin->GetHash(), scriptPubKey, lastHeight);
+                }
+                if (result) {
+                    if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                        UniValue obj(UniValue::VOBJ);
 
-                CScript scriptPubKey;
-                if (pcoin->vout[j].nValue == masternodeCollateral) {
-                    scriptPubKey = pcoin->vout[j].scriptPubKey;
+                        CTxDestination address1;
+                        ExtractDestination(scriptPubKey, address1);
 
-                    int lastHeight = 0;
-                    if (GetLastPaymentBlock(pcoin->GetHash(), scriptPubKey, lastHeight)) {
-                        if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
-                            UniValue obj(UniValue::VOBJ);
+                        obj.push_back(Pair("nHeight", lastHeight));
+                        obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+                        obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
+                        obj.push_back(Pair("idx", (uint64_t)j));
 
-                            CTxDestination address1;
-                            ExtractDestination(scriptPubKey, address1);
-
-                            obj.push_back(Pair("nHeight", lastHeight));
-                            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-                            obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
-                            obj.push_back(Pair("idx", (uint64_t)j));
-
-                            ret.push_back(obj);
-                        }
+                        ret.push_back(obj);
                     }
                 }
             }
         }
-
-        // vector<COutput> vCoins;
-        // for (COutput v : vCoins) {
-        //     UniValue obj(UniValue::VOBJ);
-
-        //     CTxDestination address1;
-        //     ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
-
-        //     obj.push_back(Pair("nHeight", chainActive.Height() - v.nDepth));
-        //     obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-        //     obj.push_back(Pair("hash", v.tx->GetHash().ToString()));
-        //     obj.push_back(Pair("idx", (uint64_t)v.i));
-
-        //     ret.push_back(obj);
-        // }
     }
+
+    // vector<COutput> vCoins;
+    // for (COutput v : vCoins) {
+    //     UniValue obj(UniValue::VOBJ);
+
+    //     CTxDestination address1;
+    //     ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
+
+    //     obj.push_back(Pair("nHeight", chainActive.Height() - v.nDepth));
+    //     obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+    //     obj.push_back(Pair("hash", v.tx->GetHash().ToString()));
+    //     obj.push_back(Pair("idx", (uint64_t)v.i));
+
+    //     ret.push_back(obj);
+    // }
+
     return ret;
 }
 
