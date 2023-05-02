@@ -42,8 +42,8 @@
 #ifdef ENABLE_MINING
 #include <functional>
 #endif
-#include <mutex>
 #include "validationinterface.h"
+#include <mutex>
 
 using namespace std;
 
@@ -358,13 +358,22 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         FillBlockPayee(txNew, nFees, payee);
 
         // Make payee
-        if(payee != CScript())
-        {
+        if (payee != CScript()) {
             CTxDestination address1;
             ExtractDestination(payee, address1);
             KeyIO keyIO(chainparams);
             LogPrint("masternode", "Masternode payment to %s\n", keyIO.EncodeDestination(address1));
             pblock->payee = payee;
+
+            if (NetworkUpgradeActive(nHeight - 20, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+                pblock->SetVersion(CBlockHeader::CURRENT_VERSION);
+                auto result = std::find_if(
+                    masternodePayments.mapMasternodePayeeVotes.begin(),
+                    masternodePayments.mapMasternodePayeeVotes.end(),
+                    [nHeight](const auto& mo) { return mo.second.nBlockHeight == nHeight; });
+
+                pblock->payeeVin = result->second.vinPayee.prevout;
+            }
         }
 
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;

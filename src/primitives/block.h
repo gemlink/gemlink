@@ -22,7 +22,8 @@ class CBlockHeader
 public:
     // header
     static const size_t HEADER_SIZE = 4 + 32 + 32 + 32 + 4 + 4 + 32; // excluding Equihash solution
-    static const int32_t CURRENT_VERSION = 4;
+    static const int32_t OLD_VERSION = 4;
+    static const int32_t CURRENT_VERSION = 5;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -54,7 +55,7 @@ public:
 
     void SetNull()
     {
-        nVersion = CBlockHeader::CURRENT_VERSION;
+        nVersion = CBlockHeader::OLD_VERSION;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
         hashFinalSaplingRoot.SetNull();
@@ -83,6 +84,7 @@ class CBlock : public CBlockHeader
 public:
     // network and disk
     std::vector<CTransaction> vtx;
+    COutPoint payeeVin;
 
     // memory only
     mutable CScript payee;
@@ -106,6 +108,9 @@ public:
     {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
+        if (nVersion > 4) {
+            READWRITE(payeeVin);
+        }
     }
 
     void SetNull()
@@ -114,6 +119,11 @@ public:
         vtx.clear();
         payee = CScript();
         vMerkleTree.clear();
+    }
+
+    void SetVersion(int32_t version)
+    {
+        nVersion = version;
     }
 
     CBlockHeader GetBlockHeader() const

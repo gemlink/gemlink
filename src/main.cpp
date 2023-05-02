@@ -7322,7 +7322,15 @@ bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
         // get transactino for tx
 
         if (GetAddress(address, vin.prevout.hash, vin.prevout.n)) {
-            return GetLastPaymentBlock(vin.prevout.hash, address, lastHeight);
+            bool result = GetLastPaymentBlock(vin.prevout.hash, address, lastHeight);
+            CBlock block;
+
+            if (!ReadBlockFromDisk(block, chainActive[lastHeight], Params().GetConsensus())) {
+                if (vin.prevout == block.payeeVin) {
+                    return result;
+                }
+                return false;
+            }
         }
     }
 
