@@ -1999,6 +1999,28 @@ bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransact
     return true;
 }
 
+bool GetAddress(CScript& scriptPubKey, uint256 txHash, int txIndex)
+{
+    uint256 hashBlock = uint256();
+    CTransaction txVin;
+    if (GetTransaction(txHash, txVin, Params().GetConsensus(), hashBlock, true)) {
+        if (txVin.IsCoinBase())
+            return false;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
+        if (pblockindex == NULL)
+            return false;
+        CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
+        bool found = false;
+        for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+            if (txVin.vout[i].nValue == masternodeCollateral && i == txIndex) {
+                scriptPubKey = txVin.vout[i].scriptPubKey;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /** Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock */
 bool GetTransaction(const uint256& hash, CTransaction& txOut, const Consensus::Params& consensusParams, uint256& hashBlock, bool fAllowSlow)
 {
@@ -2630,49 +2652,12 @@ bool CheckMnTx(
     const CTransaction& tx)
 {
     if (!tx.IsCoinBase()) {
-        if (masternodeSync.IsSynced()) {
-            for (const CTxIn vin : tx.vin) {
-                int lastHeight = 0;
-                if (GetLastPaymentBlock(vin, lastHeight)) {
-                    if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
-                        LogPrint("masternode", "try to create tx with active mn collateral or locking 1 - vin: %s\n", vin.ToString());
-                        return false;
-                    }
-                }
-            }
-        } else {
-            for (const CTxIn vin : tx.vin) {
-                // check if it's mn collateral
-                uint256 hashBlock = uint256();
-                CTransaction txVin;
-
-                // get transactino for tx
-                if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hashBlock, true)) {
-                    if (txVin.IsCoinBase())
-                        continue;
-                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
-                    if (pblockindex == NULL)
-                        continue;
-                    CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
-                    bool found = false;
-                    CScript scriptPubKey;
-                    for (unsigned int i = 0; i < txVin.vout.size(); i++) {
-                        if (txVin.vout[i].nValue == masternodeCollateral && i == vin.prevout.n) {
-                            scriptPubKey = txVin.vout[i].scriptPubKey;
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (found) {
-                        int lastHeight = 0;
-                        if (GetLastPaymentBlock(vin.prevout.hash, scriptPubKey, lastHeight)) {
-                            if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
-                                LogPrint("masternode", "try to create tx with active mn collateral or locking 2 - vin: %s\n", vin.ToString());
-                                return false;
-                            }
-                        }
-                    }
+        for (const CTxIn vin : tx.vin) {
+            int lastHeight = 0;
+            if (GetLastPaymentBlock(vin, lastHeight)) {
+                if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    LogPrint("masternode", "try to create tx with active mn collateral or locking 1 - vin: %s\n", vin.ToString());
+                    return false;
                 }
             }
         }
@@ -7323,12 +7308,24 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
     return mtx;
 }
 
-bool GetLastPaymentBlock(CTxIn vin, int& lastHeight)
+bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
 {
-    CMasternodePaymentWinner winner;
-    if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
-        lastHeight = winner.nBlockHeight;
-        return true;
+    if (masternodeSync.IsSynced() && !forceOffline) {
+        LogPrint("masternode", "GetLastPaymentBlock online");
+        CMasternodePaymentWinner winner;
+        if (masternodePayments.GetMasternodePaymentWinner(vin, winner)) {
+            lastHeight = winner.nBlockHeight;
+            return true;
+        }
+    } else {
+        LogPrint("masternode", "GetLastPaymentBlock offline");
+
+        CScript address;
+        // get transactino for tx
+
+        if (GetAddress(address, vin.prevout.hash, vin.prevout.n)) {
+            return GetLastPaymentBlock(vin.prevout.hash, address, lastHeight);
+        }
     }
 
     return false;

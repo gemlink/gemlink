@@ -876,14 +876,11 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
                 int lastHeight = 0;
                 scriptPubKey = pcoin->vout[j].scriptPubKey;
                 bool result = false;
-                if (type == 0) {
-                    COutPoint prevout(pcoin->GetHash(), j);
-                    CTxIn vin(prevout);
-                    result = GetLastPaymentBlock(vin, lastHeight);
 
-                } else {
-                    result = GetLastPaymentBlock(pcoin->GetHash(), scriptPubKey, lastHeight);
-                }
+                COutPoint prevout(pcoin->GetHash(), j);
+                CTxIn vin(prevout);
+                result = GetLastPaymentBlock(vin, lastHeight, type != 0);
+
                 if (result) {
                     if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
                         UniValue obj(UniValue::VOBJ);
