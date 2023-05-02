@@ -822,7 +822,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
 
 UniValue getmasternodepayments(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 0)
+    if (fHelp || params.size() > 1)
         throw runtime_error(
             "getmasternodepayments\n"
             "\nPrint the masternode payments for the last n blocks\n"
@@ -845,33 +845,49 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("getmasternodepayments", "") + HelpExampleRpc("getmasternodepayments", ""));
 
-    int nHeight = WITH_LOCK(cs_main, return chainActive.Height());
-    if (nHeight < 0)
-        return "[]";
-
+    int type = 0;
+    if (params.size() >= 1)
+        type = atoi(params[0].get_str());
     UniValue ret(UniValue::VARR);
 
     KeyIO keyIO(Params());
-    std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeList.begin();
-    while (it != masternodePayments.mapMasternodePayeeList.end()) {
-        if (pwalletMain->IsSpent(it->second.vinPayee.prevout.hash, it->second.vinPayee.prevout.n)) {
-            ++it;
-            continue;
+    if (type == 0) {
+        std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeList.begin();
+        while (it != masternodePayments.mapMasternodePayeeList.end()) {
+            if (pwalletMain->IsSpent(it->second.vinPayee.prevout.hash, it->second.vinPayee.prevout.n)) {
+                ++it;
+                continue;
+            }
+            UniValue obj(UniValue::VOBJ);
+
+            CTxDestination address1;
+            ExtractDestination(it->second.payee, address1);
+
+            obj.push_back(Pair("nHeight", it->second.nBlockHeight));
+            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+            obj.push_back(Pair("hash", it->second.vinPayee.prevout.hash.ToString()));
+            obj.push_back(Pair("idx", (uint64_t)it->second.vinPayee.prevout.n));
+
+            ret.push_back(obj);
+            it++;
         }
-        UniValue obj(UniValue::VOBJ);
+    } else {
+        vector<COutput> vCoins;
+        pwalletMain->MasternodeCoins(vCoins);
+        for (COutput v : vCoins) {
+            UniValue obj(UniValue::VOBJ);
 
-        CTxDestination address1;
-        ExtractDestination(it->second.payee, address1);
+            CTxDestination address1;
+            ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
 
-        obj.push_back(Pair("nHeight", it->second.nBlockHeight));
-        obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-        obj.push_back(Pair("hash", it->second.vinPayee.prevout.hash.ToString()));
-        obj.push_back(Pair("idx", (uint64_t)it->second.vinPayee.prevout.n));
+            obj.push_back(Pair("nHeight", chainActive.Height() - v.nDepth));
+            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+            obj.push_back(Pair("hash", v.tx->GetHash().ToString()));
+            obj.push_back(Pair("idx", (uint64_t)v.i));
 
-        ret.push_back(obj);
-        it++;
+            ret.push_back(obj);
+        }
     }
-
     return ret;
 }
 

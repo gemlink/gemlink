@@ -4067,11 +4067,16 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
                 bool found = false;
                 int lastBlock = 0;
+
+                if (IsLockedCoin(pcoin->GetHash(), i)) {
+                    found = true;
+                }
                 COutPoint prevout(pcoin->GetHash(), i);
+
                 CTxIn vin(prevout);
                 if (
                     GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
-                    found = true;
+                    found |= true;
                 }
 
 
