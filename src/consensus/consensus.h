@@ -8,6 +8,7 @@
 
 /** The minimum allowed block version (network rule) */
 static const int32_t MIN_BLOCK_VERSION = 4;
+static const int32_t MIN_BLOCK_VERSION_XANDAR = 5;
 /** The minimum allowed transaction version (network rule) */
 static const int32_t SPROUT_MIN_TX_VERSION = 1;
 /** The minimum allowed Overwinter transaction version (network rule) */

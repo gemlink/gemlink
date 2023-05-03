@@ -4206,8 +4206,13 @@ bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigne
 
 bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, bool fCheckPOW)
 {
+    unsigned int nHeight = chainActive.Height();
     // Check block version
-    if (block.nVersion < MIN_BLOCK_VERSION)
+    int minBlockVersion = MIN_BLOCK_VERSION;
+    if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight - 20, Consensus::UPGRADE_XANDAR)) {
+        minBlockVersion = MIN_BLOCK_VERSION_XANDAR;
+    }
+    if (block.nVersion < minBlockVersion)
         return state.DoS(100, error("CheckBlockHeader(): block version too low"),
                          REJECT_INVALID, "version-too-low");
 
@@ -4221,7 +4226,6 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const 
         return state.DoS(50, error("CheckBlockHeader(): proof of work failed"),
                          REJECT_INVALID, "high-hash");
 
-    unsigned int nHeight = chainActive.Height();
     // Check timestamp
     if (nHeight < chainparams.GetConsensus().vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight) {
         if (nHeight < chainparams.GetNewTimeRule() && block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
@@ -4337,6 +4341,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams
     for (const CTransaction& tx : block.vtx)
         if (!CheckTransaction(tx, state, verifier))
             return error("CheckBlock(): CheckTransaction failed");
+
+    // @TODO TXID check payee vin
 
     unsigned int nSigOps = 0;
     for (const CTransaction& tx : block.vtx) {
@@ -4579,6 +4585,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
 
+    pindex->SetPayee(block.payeeVin);
     // Try to process all requested blocks that we don't have, but only
     // process an unrequested block if it's new and has enough work to
     // advance our tip, and isn't too many blocks ahead.
@@ -4945,6 +4952,7 @@ bool static LoadBlockIndexDB()
                 pindex->nChainSaplingValue = 0;
             }
         }
+
         // Construct in-memory chain of branch IDs.
         // Relies on invariant: a block that does not activate a network upgrade
         // will always be valid under the same consensus rules as its parent.

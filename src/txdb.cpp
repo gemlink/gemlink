@@ -628,6 +628,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
                 pindexNew->nSproutValue = diskindex.nSproutValue;
                 pindexNew->nSaplingValue = diskindex.nSaplingValue;
 
+                if (diskindex.nVersion > CBlockHeader::OLD_VERSION) {
+                    pindexNew->payeeVin = diskindex.payeeVin;
+                }
+
                 // Consistency checks
                 auto header = pindexNew->GetBlockHeader();
                 if (header.GetHash() != pindexNew->GetBlockHash())

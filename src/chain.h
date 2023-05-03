@@ -276,6 +276,7 @@ public:
     uint256 nNonce;
     std::vector<unsigned char> nSolution;
 
+    COutPoint payeeVin;
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
 
@@ -307,6 +308,8 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = uint256();
+
+        payeeVin = COutPoint();
         nSolution.clear();
     }
 
@@ -371,6 +374,11 @@ public:
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
+    }
+
+    void SetPayee(COutPoint payee)
+    {
+        payeeVin = payee;
     }
 
     enum { nMedianTimeSpan = 11 };
@@ -500,6 +508,9 @@ public:
 
         // If you have just added new serialized fields above, remember to add
         // them to CBlockTreeDB::LoadBlockIndexGuts() in txdb.cpp :)
+        if (nVersion > CBlockHeader::OLD_VERSION) {
+            READWRITE(payeeVin);
+        }
     }
 
     uint256 GetBlockHash() const
