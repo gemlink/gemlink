@@ -226,13 +226,17 @@ void CMasternode::Check(bool forceCheck)
         dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
         CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-            vout = CTxOut(19999.99 * COIN, dummyScript);
+            if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN)
+                vout = CTxOut(19999.99 * COIN, dummyScript);
+            else
+                vout = CTxOut(19.99 * COIN, dummyScript);
         }
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         {
             TRY_LOCK(cs_main, lockMain);
-            if (!lockMain) return;
+            if (!lockMain)
+                return;
 
             if (!AcceptableInputs(mempool, state, CTransaction(tx), false, NULL)) {
                 activeState = MASTERNODE_VIN_SPENT;
@@ -600,7 +604,10 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
     CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-        vout = CTxOut(19999.99 * COIN, dummyScript);
+        if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN)
+            vout = CTxOut(19999.99 * COIN, dummyScript);
+        else
+            vout = CTxOut(19.99 * COIN, dummyScript);
     }
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
