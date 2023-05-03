@@ -367,7 +367,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         }
 
 
-        if (NetworkUpgradeActive(nHeight - 20, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
             pblock->SetVersion(CBlockHeader::CURRENT_VERSION);
             auto result = std::find_if(
                 masternodePayments.mapMasternodePayeeVotes.begin(),

@@ -4209,7 +4209,7 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const 
     unsigned int nHeight = chainActive.Height();
     // Check block version
     int minBlockVersion = MIN_BLOCK_VERSION;
-    if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight - 20, Consensus::UPGRADE_XANDAR)) {
+    if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR)) {
         minBlockVersion = MIN_BLOCK_VERSION_XANDAR;
     }
     if (block.nVersion < minBlockVersion)
