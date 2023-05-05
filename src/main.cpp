@@ -4278,19 +4278,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams
         return state.DoS(100, error("CheckBlock(): first tx is not coinbase"),
                          REJECT_INVALID, "bad-cb-missing");
 
-    bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(chainActive.Tip() ? chainActive.Tip()->nHeight + 1 : 0, Consensus::UPGRADE_XANDAR);
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i].IsCoinBase())
             return state.DoS(100, error("CheckBlock(): more than one coinbase"),
                              REJECT_INVALID, "bad-cb-multiple");
-        else {
-            if (xandarActive) {
-                if (!CheckMnTx(block.vtx[i])) {
-                    return state.DoS(50, error("CheckBlock(): tx locked failed"),
-                                     REJECT_INVALID, "bad-txns-lock");
-                }
-            }
-        }
 
     // ----------- swiftTX transaction scanning -----------
     if (sporkManager.IsSporkActive(SPORK_3_SWIFTTX_BLOCK_FILTERING)) {
@@ -7353,8 +7344,10 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
     lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
     int scanHeight = chainActive.Height();
 
-    // do not count new tx
-    if (lastScanHeight > scanHeight || nHeight + MIN_LOCKED_AGE > scanHeight) {
+
+    if (lastScanHeight > scanHeight ||
+        // do not count new tx
+        nHeight + MIN_LOCKED_AGE > scanHeight) {
         return false;
     }
     int lastPayment = 0;
