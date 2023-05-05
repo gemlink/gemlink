@@ -324,7 +324,7 @@ public:
         bip44CoinType = 1;
         consensus.fCoinbaseMustBeProtected = true;
         consensus.nSubsidySlowStartInterval = 8000;
-        consensus.nSubsidyHalvingInterval = 60 * 24 * 365 * 4; // halving at block 81480
+        consensus.nSubsidyHalvingInterval = 3500; // halving at block 81280
         consensus.nMajorityEnforceBlockUpgrade = 51;
         consensus.nMajorityRejectBlockOutdated = 75;
         consensus.nMajorityWindow = 400;
