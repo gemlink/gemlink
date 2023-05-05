@@ -2168,7 +2168,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     // Subsidy is cut in half every 60 * 24 * 365 * 4 blocks which will occur approximately every 4 years.
     int nSubsidyHalvingInterval = consensusParams.nSubsidyHalvingInterval;
     if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN && consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
-        nSubsidyHalvingInterval = 3700;
+        nSubsidyHalvingInterval = 3500;
     }
     int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / nSubsidyHalvingInterval;
     if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
