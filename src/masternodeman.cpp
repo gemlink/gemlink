@@ -21,7 +21,7 @@
 #include <boost/thread.hpp>
 
 #define MN_WINNER_MINIMUM_AGE 8000 // Age in seconds. This should be > MASTERNODE_REMOVAL_SECONDS to avoid misconfigured new nodes in the list.
-
+#define MN_WINNER_MINIMUM_AGE_TESTNET 200
 /** Masternode manager */
 CMasternodeMan mnodeman;
 CActiveMasternode activeMasternode;
@@ -379,6 +379,9 @@ int CMasternodeMan::stable_size()
     int nStable_size = 0;
     int nMinProtocol = ActiveProtocol();
     int64_t nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE;
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN) {
+        nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE_TESTNET;
+    }
     int64_t nMasternode_Age = 0;
 
     for (CMasternode& mn : vMasternodes) {
@@ -611,6 +614,9 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
 {
     std::vector<pair<int64_t, CTxIn>> vecMasternodeScores;
     int64_t nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE;
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN) {
+        nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE_TESTNET;
+    }
     int64_t nMasternode_Age = 0;
 
     // make sure we know about this block

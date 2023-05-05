@@ -746,25 +746,6 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             continue;
 
         if (strPayment.find(',') != std::string::npos) {
-            if (i <= nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL) {
-                CMasternodePaymentWinner winner;
-                bool success = false;
-                std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
-                while (it != masternodePayments.mapMasternodePayeeVotes.end()) {
-                    winner = (*it).second;
-                    if (winner.nBlockHeight == i) {
-                        success = true;
-                        break;
-                    }
-                    it++;
-                }
-                if (success) {
-                    UniValue vin(UniValue::VOBJ);
-                    vin.push_back(Pair("hash", winner.vinPayee.prevout.hash.ToString()));
-                    vin.push_back(Pair("idx", (uint64_t)winner.vinPayee.prevout.n));
-                    obj.push_back(Pair("vin", vin));
-                }
-            }
             UniValue winner(UniValue::VARR);
             boost::char_separator<char> sep(",");
             boost::tokenizer<boost::char_separator<char>> tokens(strPayment, sep);
@@ -780,25 +761,6 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
             }
             obj.push_back(Pair("winner", winner));
         } else if (strPayment.find("Unknown") == std::string::npos) {
-            if (i <= nHeight && nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL) {
-                CMasternodePaymentWinner winner;
-                bool success = false;
-                std::map<uint256, CMasternodePaymentWinner>::iterator it = masternodePayments.mapMasternodePayeeVotes.begin();
-                while (it != masternodePayments.mapMasternodePayeeVotes.end()) {
-                    winner = (*it).second;
-                    if (winner.nBlockHeight == i) {
-                        success = true;
-                        break;
-                    }
-                    it++;
-                }
-                if (success) {
-                    UniValue vin(UniValue::VOBJ);
-                    vin.push_back(Pair("hash", winner.vinPayee.prevout.hash.ToString()));
-                    vin.push_back(Pair("idx", (uint64_t)winner.vinPayee.prevout.n));
-                    obj.push_back(Pair("vin", vin));
-                }
-            }
             UniValue winner(UniValue::VOBJ);
             std::size_t pos = strPayment.find(":");
             std::string strAddress = strPayment.substr(0, pos);
@@ -822,7 +784,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
 
 UniValue getmasternodepayments(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "getmasternodepayments\n"
             "\nPrint the masternode payments for the last n blocks\n"
@@ -845,10 +807,34 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("getmasternodepayments", "") + HelpExampleRpc("getmasternodepayments", ""));
 
-    int type = 0;
-    if (params.size() >= 1)
-        type = atoi(params[0].get_str());
+    uint256 txid;
+    int idx = -1;
+    if (params.size() >= 2) {
+        txid.SetHex(params[0].get_str());
+        idx = atoi(params[1].get_str());
+    }
+
     UniValue ret(UniValue::VARR);
+
+    if (idx > -1) {
+        COutPoint prevout(txid, idx);
+        CTxIn vin(prevout);
+        int lastHeight = 0;
+        bool result = GetLastPaymentBlock(vin, lastHeight);
+
+        if (result) {
+            if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                UniValue obj(UniValue::VOBJ);
+
+                obj.push_back(Pair("nHeight", lastHeight));
+                obj.push_back(Pair("hash", txid.ToString()));
+                obj.push_back(Pair("idx", (uint64_t)idx));
+
+                ret.push_back(obj);
+            }
+        }
+        return ret;
+    }
 
     KeyIO keyIO(Params());
 
@@ -873,13 +859,17 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
 
             CScript scriptPubKey;
             if (pcoin->vout[j].nValue == masternodeCollateral) {
+                if (pwalletMain->IsSpent(pcoin->GetHash(), j)) {
+                    continue;
+                }
+
                 int lastHeight = 0;
                 scriptPubKey = pcoin->vout[j].scriptPubKey;
                 bool result = false;
 
                 COutPoint prevout(pcoin->GetHash(), j);
                 CTxIn vin(prevout);
-                result = GetLastPaymentBlock(vin, lastHeight, type != 0);
+                result = GetLastPaymentBlock(vin, lastHeight);
 
                 if (result) {
                     if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
@@ -899,21 +889,6 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
             }
         }
     }
-
-    // vector<COutput> vCoins;
-    // for (COutput v : vCoins) {
-    //     UniValue obj(UniValue::VOBJ);
-
-    //     CTxDestination address1;
-    //     ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
-
-    //     obj.push_back(Pair("nHeight", chainActive.Height() - v.nDepth));
-    //     obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-    //     obj.push_back(Pair("hash", v.tx->GetHash().ToString()));
-    //     obj.push_back(Pair("idx", (uint64_t)v.i));
-
-    //     ret.push_back(obj);
-    // }
 
     return ret;
 }

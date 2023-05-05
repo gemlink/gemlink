@@ -112,6 +112,7 @@ static const bool DEFAULT_SPENTINDEX = false;
 static const bool DEFAULT_DB_COMPRESSION = true;
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 
+static const unsigned int MIN_LOCKED_AGE = 6; // blocks
 /**
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid

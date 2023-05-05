@@ -168,7 +168,6 @@ public:
 
     int nBlockHeight;
     CScript payee;
-    CTxIn vinPayee;
     CMasternodePaymentWinner();
 
     CMasternodePaymentWinner(CTxIn vinIn);
@@ -208,9 +207,6 @@ public:
             READWRITE(nMessVersion);
         } catch (...) {
             nMessVersion = MessageVersion::MESS_VER_STRMESS;
-        }
-        if (nBlockHeight > 0 && NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-            READWRITE(vinPayee);
         }
     }
 
@@ -258,11 +254,6 @@ public:
 
     void Sync(CNode* node, int nCountNeeded);
     void CleanPaymentList();
-
-    bool GetLastPaymentWinner(CTxIn vin, CMasternodePaymentWinner& winner);
-
-    void UpdatePayeeList();
-    void UpdatePayeeList(CMasternodePaymentWinner winner);
 
     bool GetBlockPayee(int nBlockHeight, CScript& payee);
     bool IsTransactionValid(const CChainParams& chainparams, const CTransaction& txNew, int nBlockHeight);

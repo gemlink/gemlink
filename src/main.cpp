@@ -1078,7 +1078,7 @@ bool ContextualCheckTransaction(
 
     if (xandarActive) {
         if (!CheckMnTx(tx)) {
-            return state.DoS(100, error("ContextualCheckTransaction(): tx locked failed"),
+            return state.DoS(50, error("ContextualCheckTransaction(): tx locked failed"),
                              REJECT_INVALID, "bad-txns-lock");
         }
     }
@@ -4277,10 +4277,20 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
         return state.DoS(100, error("CheckBlock(): first tx is not coinbase"),
                          REJECT_INVALID, "bad-cb-missing");
+
+    bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(chainActive.Tip() ? chainActive.Tip()->nHeight + 1 : 0, Consensus::UPGRADE_XANDAR);
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i].IsCoinBase())
             return state.DoS(100, error("CheckBlock(): more than one coinbase"),
                              REJECT_INVALID, "bad-cb-multiple");
+        else {
+            if (xandarActive) {
+                if (!CheckMnTx(block.vtx[i])) {
+                    return state.DoS(50, error("CheckBlock(): tx locked failed"),
+                                     REJECT_INVALID, "bad-txns-lock");
+                }
+            }
+        }
 
     // ----------- swiftTX transaction scanning -----------
     if (sporkManager.IsSporkActive(SPORK_3_SWIFTTX_BLOCK_FILTERING)) {
@@ -7310,22 +7320,15 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
 
 bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
 {
-    if (masternodeSync.IsSynced() && !forceOffline) {
-        LogPrint("masternode", "GetLastPaymentBlock online");
-        CMasternodePaymentWinner winner;
-        if (masternodePayments.GetLastPaymentWinner(vin, winner)) {
-            lastHeight = winner.nBlockHeight;
-            return true;
-        }
-    } else {
-        LogPrint("masternode", "GetLastPaymentBlock offline");
+    if (IsInitialBlockDownload(Params().GetConsensus())) {
+        return false;
+    }
 
-        CScript address;
-        // get transactino for tx
+    CScript address;
 
-        if (GetAddress(address, vin.prevout.hash, vin.prevout.n)) {
-            return GetLastPaymentBlock(vin.prevout.hash, address, lastHeight);
-        }
+    // get transactino for tx
+    if (GetAddress(address, vin.prevout.hash, vin.prevout.n)) {
+        return GetLastPaymentBlock(vin.prevout.hash, address, lastHeight);
     }
 
     return false;
@@ -7347,10 +7350,11 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
     }
 
     int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks());
-    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight + MNPAYMENTS_SIGNATURES_TOTAL);
+    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
     int scanHeight = chainActive.Height();
 
-    if (lastScanHeight > scanHeight) {
+    // do not count new tx
+    if (lastScanHeight > scanHeight || nHeight + MIN_LOCKED_AGE > scanHeight) {
         return false;
     }
     int lastPayment = 0;
