@@ -278,6 +278,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                 mn.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
                 mn.push_back(Pair("address", keyIO.EncodeDestination(address1)));
                 mn.push_back(Pair("hash", v.tx->GetHash().ToString()));
+                mn.push_back(Pair("amount", Params().GetMasternodeCollateral(lastHeight)));
                 mn.push_back(Pair("idx", v.i));
                 mnList.push_back(mn);
             }
