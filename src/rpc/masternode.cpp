@@ -878,7 +878,8 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
                         CTxDestination address1;
                         ExtractDestination(scriptPubKey, address1);
 
-                        obj.push_back(Pair("nHeight", lastHeight));
+                        obj.push_back(Pair("lastpayment", lastHeight));
+                        obj.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
                         obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
                         obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
                         obj.push_back(Pair("idx", (uint64_t)j));

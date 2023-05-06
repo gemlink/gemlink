@@ -280,6 +280,65 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     returnObj.push_back(Pair("listtransactions", trans));
     returnObj.push_back(Pair("isencrypted", pwalletMain->IsCrypted()));
     returnObj.push_back(Pair("islocked", pwalletMain->IsLocked()));
+
+    {
+        UniValue ret(UniValue::VARR);
+        // locked txs
+        LOCK2(cs_main, pwalletMain->cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
+            const uint256& wtxid = it->first;
+            const CWalletTx* pcoin = &(*it).second;
+
+            if (!CheckFinalTx(*pcoin))
+                continue;
+
+            if (!pcoin->IsTrusted())
+                continue;
+
+            if (pcoin->IsCoinBase())
+                continue;
+
+            int nDepth = pcoin->GetDepthInMainChain();
+
+            for (unsigned int j = 0; j < pcoin->vout.size(); j++) {
+                CAmount masternodeCollateral = Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
+
+                CScript scriptPubKey;
+                if (pcoin->vout[j].nValue == masternodeCollateral) {
+                    if (pwalletMain->IsSpent(pcoin->GetHash(), j)) {
+                        continue;
+                    }
+
+                    int lastHeight = 0;
+                    scriptPubKey = pcoin->vout[j].scriptPubKey;
+                    bool result = false;
+
+                    COutPoint prevout(pcoin->GetHash(), j);
+                    CTxIn vin(prevout);
+                    result = GetLastPaymentBlock(vin, lastHeight);
+
+                    if (result) {
+                        if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                            UniValue obj(UniValue::VOBJ);
+
+                            CTxDestination address1;
+                            ExtractDestination(scriptPubKey, address1);
+
+                            obj.push_back(Pair("lastpayment", lastHeight));
+                            obj.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
+                            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+                            obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
+                            obj.push_back(Pair("idx", (uint64_t)j));
+
+                            ret.push_back(obj);
+                        }
+                    }
+                }
+            }
+        }
+
+        returnObj.push_back(Pair("lockedtransactions", ret));
+    }
 #endif
 
 
