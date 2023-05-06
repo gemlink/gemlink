@@ -117,7 +117,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2167200;    // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
-        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2836402;   // 2023, Jun 01
+        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2844000;   // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
