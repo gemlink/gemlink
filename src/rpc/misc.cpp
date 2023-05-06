@@ -19,10 +19,10 @@
 #include "txmempool.h"
 #include "util.h"
 #include "utilmoneystr.h"
-#ifdef ENABLE_WALLET
+// #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#endif
+// #endif
 
 #include <stdint.h>
 
@@ -256,6 +256,8 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     }
 
 
+    returnObj.push_back(Pair("listtransactions", trans));
+
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
         vector<COutput> vCoins;
         pwalletMain->MasternodeCoins(vCoins);
@@ -268,79 +270,24 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                 CTxIn vin(prevout);
                 GetLastPaymentBlock(vin, lastHeight);
 
+                CTxDestination address1;
+                ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
+
                 UniValue mn(UniValue::VOBJ);
-                mn.push_back(Pair("amount", v.Value()));
-                mn.push_back(Pair("hash", v.tx->vout[v.i].GetHash().ToString()));
-                mn.push_back(Pair("index", v.i));
-                mn.push_back(Pair("unlockedheight", lastHeight + Params().GetmnLockBlocks()));
+                mn.push_back(Pair("lastpayment", lastHeight));
+                mn.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
+                mn.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+                mn.push_back(Pair("hash", v.tx->GetHash().ToString()));
+                mn.push_back(Pair("idx", v.i));
+                mnList.push_back(mn);
             }
             returnObj.push_back(Pair("lockedtxs", mnList));
         }
     }
-    returnObj.push_back(Pair("listtransactions", trans));
     returnObj.push_back(Pair("isencrypted", pwalletMain->IsCrypted()));
     returnObj.push_back(Pair("islocked", pwalletMain->IsLocked()));
 
-    {
-        UniValue ret(UniValue::VARR);
-        // locked txs
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
-            const uint256& wtxid = it->first;
-            const CWalletTx* pcoin = &(*it).second;
-
-            if (!CheckFinalTx(*pcoin))
-                continue;
-
-            if (!pcoin->IsTrusted())
-                continue;
-
-            if (pcoin->IsCoinBase())
-                continue;
-
-            int nDepth = pcoin->GetDepthInMainChain();
-
-            for (unsigned int j = 0; j < pcoin->vout.size(); j++) {
-                CAmount masternodeCollateral = Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
-
-                CScript scriptPubKey;
-                if (pcoin->vout[j].nValue == masternodeCollateral) {
-                    if (pwalletMain->IsSpent(pcoin->GetHash(), j)) {
-                        continue;
-                    }
-
-                    int lastHeight = 0;
-                    scriptPubKey = pcoin->vout[j].scriptPubKey;
-                    bool result = false;
-
-                    COutPoint prevout(pcoin->GetHash(), j);
-                    CTxIn vin(prevout);
-                    result = GetLastPaymentBlock(vin, lastHeight);
-
-                    if (result) {
-                        if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
-                            UniValue obj(UniValue::VOBJ);
-
-                            CTxDestination address1;
-                            ExtractDestination(scriptPubKey, address1);
-
-                            obj.push_back(Pair("lastpayment", lastHeight));
-                            obj.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
-                            obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-                            obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
-                            obj.push_back(Pair("idx", (uint64_t)j));
-
-                            ret.push_back(obj);
-                        }
-                    }
-                }
-            }
-        }
-
-        returnObj.push_back(Pair("lockedtransactions", ret));
-    }
 #endif
-
 
     return returnObj;
 }
