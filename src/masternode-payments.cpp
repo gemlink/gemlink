@@ -612,11 +612,6 @@ bool CMasternodePayments::AddWinningMasternode(CMasternodePaymentWinner& winnerI
             return false;
         }
 
-        KeyIO keyIO(Params());
-
-        CTxDestination address1;
-        ExtractDestination(winnerIn.payee, address1);
-
         mapMasternodePayeeVotes[winnerIn.GetHash()] = winnerIn;
 
         if (!mapMasternodeBlocks.count(winnerIn.nBlockHeight)) {
