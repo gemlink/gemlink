@@ -23,6 +23,7 @@ CMasternodeSync masternodeSync;
 CMasternodeSync::CMasternodeSync()
 {
     Reset();
+    lastProcess = GetTime();
 }
 
 
@@ -42,6 +43,9 @@ bool CMasternodeSync::IsBlockchainSynced()
 
     // if the last call to this function was more than 60 minutes ago (client was in sleep mode) reset the sync process
     if (now > lastProcess + 60 * 60) {
+        DumpMasternodes();
+        DumpBudgets();
+        DumpMasternodePayments();
         Reset();
         fBlockchainSynced = false;
     }
@@ -95,6 +99,7 @@ void CMasternodeSync::Reset()
     RequestedMasternodeAssets = MASTERNODE_SYNC_INITIAL;
     RequestedMasternodeAttempt = 0;
     nAssetSyncStarted = GetTime();
+    ClearFulfilledRequest();
 }
 
 void CMasternodeSync::AddedMasternodeList(const uint256& hash)
@@ -306,7 +311,7 @@ void CMasternodeSync::Process()
                 int nMnCount = mnodeman.CountEnabled();
                 pnode->PushMessage("mnget", nMnCount); // sync payees
                 uint256 n = uint256();
-                pnode->PushMessage("mnvs", n); // sync masternode votes
+                pnode->PushMessage("mnvs", n);         // sync masternode votes
             } else {
                 RequestedMasternodeAssets = MASTERNODE_SYNC_FINISHED;
             }
@@ -342,8 +347,8 @@ void CMasternodeSync::Process()
                 // timeout
                 if (lastMasternodeList == 0 &&
                     (RequestedMasternodeAttempt >= MASTERNODE_SYNC_THRESHOLD * 3 || GetTime() - nAssetSyncStarted > MASTERNODE_SYNC_TIMEOUT * 5)) {
-                    if ((sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
-                        (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG) && Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG))) {
+                    if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN && ((sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
+                                                                                 (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG) && Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)))) {
                         LogPrintf("CMasternodeSync::Process - ERROR - Sync has failed, will retry later\n");
                         RequestedMasternodeAssets = MASTERNODE_SYNC_FAILED;
                         RequestedMasternodeAttempt = 0;
@@ -376,8 +381,8 @@ void CMasternodeSync::Process()
                 // timeout
                 if (lastMasternodeWinner == 0 &&
                     (RequestedMasternodeAttempt >= MASTERNODE_SYNC_THRESHOLD * 3 || GetTime() - nAssetSyncStarted > MASTERNODE_SYNC_TIMEOUT * 5)) {
-                    if ((sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
-                        (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG) && Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG))) {
+                    if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN && ((sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
+                                                                                 (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG) && Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)))) {
                         LogPrintf("CMasternodeSync::Process - ERROR - Sync has failed, will retry later\n");
                         RequestedMasternodeAssets = MASTERNODE_SYNC_FAILED;
                         RequestedMasternodeAttempt = 0;

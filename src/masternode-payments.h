@@ -168,7 +168,6 @@ public:
 
     int nBlockHeight;
     CScript payee;
-
     CMasternodePaymentWinner();
 
     CMasternodePaymentWinner(CTxIn vinIn);
@@ -288,6 +287,5 @@ public:
         READWRITE(mapMasternodeBlocks);
     }
 };
-
 
 #endif

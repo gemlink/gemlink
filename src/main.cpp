@@ -20,6 +20,7 @@
 #include "deprecation.h"
 #include "experimental_features.h"
 #include "init.h"
+#include "key_io.h"
 #include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
@@ -82,7 +83,7 @@ bool fExperimentalMode = false;
 bool fImporting = false;
 bool fReindex = false;
 bool fTxIndex = false;
-bool fAddressIndex = false;
+bool fAddressIndex = true; // enable address index by default to support mn collateral check faster
 bool fTimestampIndex = false;
 bool fSpentIndex = false;
 bool fHavePruned = false;
@@ -979,6 +980,7 @@ bool ContextualCheckTransaction(
     bool saplingActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_SAPLING);
     bool atlantisActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS);
     bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
+    bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -1072,6 +1074,13 @@ bool ContextualCheckTransaction(
         if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_TX_SIZE_BEFORE_SAPLING)
             return state.DoS(100, error("ContextualCheckTransaction(): size limits failed"),
                              REJECT_INVALID, "bad-txns-oversize");
+    }
+
+    if (xandarActive) {
+        if (!CheckMnTx(tx)) {
+            return state.DoS(50, error("ContextualCheckTransaction(): tx locked failed"),
+                             REJECT_INVALID, "bad-txns-lock");
+        }
     }
 
     auto prevConsensusBranchId = PrevEpochBranchId(consensusBranchId, consensus);
@@ -1214,8 +1223,9 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVeri
                                  REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
         }
-        return true;
     }
+
+    return true;
 }
 
 bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidationState& state)
@@ -1774,6 +1784,17 @@ bool GetAddressIndex(uint160 addressHash, int type, std::vector<std::pair<CAddre
     return true;
 }
 
+bool GetAddressIndexMN(uint160 addressHash, int type, std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex, int start, int end)
+{
+    if (!fAddressIndex)
+        return error("address index not enabled");
+
+    if (!pblocktree->ReadAddressIndexMN(addressHash, type, addressIndex, start, end))
+        return false;
+
+    return true;
+}
+
 bool GetAddressUnspent(uint160 addressHash, int type, std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& unspentOutputs)
 {
     if (!fAddressIndex)
@@ -1978,6 +1999,28 @@ bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransact
     return true;
 }
 
+bool GetAddress(CScript& scriptPubKey, uint256 txHash, int txIndex)
+{
+    uint256 hashBlock = uint256();
+    CTransaction txVin;
+    if (GetTransaction(txHash, txVin, Params().GetConsensus(), hashBlock, true)) {
+        if (txVin.IsCoinBase())
+            return false;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
+        if (pblockindex == NULL)
+            return false;
+        CAmount masternodeCollateral = Params().GetMasternodeCollateral(pblockindex->nHeight) * COIN;
+        bool found = false;
+        for (unsigned int i = 0; i < txVin.vout.size(); i++) {
+            if (txVin.vout[i].nValue == masternodeCollateral && i == txIndex) {
+                scriptPubKey = txVin.vout[i].scriptPubKey;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /** Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock */
 bool GetTransaction(const uint256& hash, CTransaction& txOut, const Consensus::Params& consensusParams, uint256& hashBlock, bool fAllowSlow)
 {
@@ -2123,10 +2166,14 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 
 
     // Subsidy is cut in half every 60 * 24 * 365 * 4 blocks which will occur approximately every 4 years.
-    int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / consensusParams.nSubsidyHalvingInterval;
+    int nSubsidyHalvingInterval = consensusParams.nSubsidyHalvingInterval;
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN && consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
+        nSubsidyHalvingInterval = 3500;
+    }
+    int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / nSubsidyHalvingInterval;
     if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         nSubsidy = 30 * COIN;
-        halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / consensusParams.nSubsidyHalvingInterval;
+        halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / nSubsidyHalvingInterval;
         if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
             nSubsidy += GetPremineAmountAtHeight(nHeight);
         }
@@ -2154,15 +2201,15 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
         }
     } else {
         if (nHeight > nMNPSBlock)
-            ret = 7 * COIN; // > 193200 - 35.0%
+            ret = 7 * COIN;  // > 193200 - 35.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 1))
-            ret = 8 * COIN; // > 236400 - 40.0%
+            ret = 8 * COIN;  // > 236400 - 40.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 2))
-            ret = 9 * COIN; // > 279600 - 45.0%
+            ret = 9 * COIN;  // > 279600 - 45.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 3))
             ret = 10 * COIN; // > 322800 - 50.0%
         if (nHeight > nMNPaymentChange)
-            ret = 9 * COIN; // 45%
+            ret = 9 * COIN;  // 45%
         if (nHeight >= nMNPaymentDIFA)
             ret = 925 * COIN / 100;
     }
@@ -2592,6 +2639,25 @@ bool ContextualCheckInputs(
                     // peering with non-upgraded nodes even after a soft-fork
                     // super-majority vote has passed.
                     return state.DoS(100, false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+
+bool CheckMnTx(
+    const CTransaction& tx)
+{
+    if (!tx.IsCoinBase()) {
+        for (const CTxIn vin : tx.vin) {
+            int lastHeight = 0;
+            if (GetLastPaymentBlock(vin, lastHeight)) {
+                if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    LogPrint("masternode", "try to create tx with active mn collateral or locking 1 - vin: %s\n", vin.ToString());
+                    return false;
                 }
             }
         }
@@ -3674,9 +3740,9 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     static_assert(MAX_REORG_LENGTH > 0, "We must be able to reorg some distance");
     if (reorgLength > MAX_REORG_LENGTH && masternodeSync.IsSynced()) {
         auto msg = strprintf(
-                                 "A block chain reorganization has been detected that would roll back %d blocks! "
-                                 "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
-                             reorgLength, MAX_REORG_LENGTH) +
+                       "A block chain reorganization has been detected that would roll back %d blocks! "
+                       "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
+                       reorgLength, MAX_REORG_LENGTH) +
                    "\n\n" +
                    "Reorganization details :\n" +
                    "- " + strprintf("Current tip: %s, height %d, work %s", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
@@ -4213,6 +4279,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
         return state.DoS(100, error("CheckBlock(): first tx is not coinbase"),
                          REJECT_INVALID, "bad-cb-missing");
+
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i].IsCoinBase())
             return state.DoS(100, error("CheckBlock(): more than one coinbase"),
@@ -4531,7 +4598,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     // and unrequested blocks.
     if (fAlreadyHave)
         return true;
-    if (!fRequested) { // If we didn't ask for it:
+    if (!fRequested) {   // If we didn't ask for it:
         if (pindex->nTx != 0)
             return true; // This is a previously-processed block that was pruned
         if (!fHasMoreWork)
@@ -5148,9 +5215,9 @@ bool RewindBlockIndex(const CChainParams& params, bool& clearWitnessCaches)
             auto pindexOldTip = chainActive.Tip();
             auto pindexRewind = chainActive[nHeight - 1];
             auto msg = strprintf(
-                                     "A block chain rewind has been detected that would roll back %d blocks! "
-                                     "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
-                                 rewindLength, MAX_REORG_LENGTH) +
+                           "A block chain rewind has been detected that would roll back %d blocks! "
+                           "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
+                           rewindLength, MAX_REORG_LENGTH) +
                        "\n\n" +
                        _("Rewind details") + ":\n" +
                        "- " + strprintf("Current tip:   %s, height %d", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
@@ -5304,6 +5371,7 @@ bool InitBlockIndex()
     // Use the provided setting for -insightexplorer or -lightwalletd in the new database
     pblocktree->WriteFlag("insightexplorer", fExperimentalInsightExplorer);
     pblocktree->WriteFlag("lightwalletd", fExperimentalLightWalletd);
+
     if (fExperimentalInsightExplorer) {
         fAddressIndex = true;
         fSpentIndex = true;
@@ -5527,18 +5595,18 @@ void static CheckBlockIndex()
             assert(pindex->nStatus & BLOCK_HAVE_DATA);
         assert(((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS) == (pindex->nTx > 0)); // This is pruning-independent.
         // All parents having had data (at some point) is equivalent to all parents being VALID_TRANSACTIONS, which is equivalent to nChainTx being set.
-        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0)); // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
+        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0));           // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
         assert((pindexFirstNotTransactionsValid != NULL) == (pindex->nChainTx == 0));
         assert(pindex->nHeight == nHeight);                                               // nHeight must be consistent.
         assert(pindex->pprev == NULL || pindex->nChainWork >= pindex->pprev->nChainWork); // For every block except the genesis block, the chainwork must be larger than the parent's.
         assert(nHeight < 2 || (pindex->pskip && (pindex->pskip->nHeight < nHeight)));     // The pskip pointer must point back for all but the first 2 blocks.
         assert(pindexFirstNotTreeValid == NULL);                                          // All mapBlockIndex entries must at least be TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TREE)
-            assert(pindexFirstNotTreeValid == NULL); // TREE valid implies all parents are TREE valid
+            assert(pindexFirstNotTreeValid == NULL);                                      // TREE valid implies all parents are TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_CHAIN)
-            assert(pindexFirstNotChainValid == NULL); // CHAIN valid implies all parents are CHAIN valid
+            assert(pindexFirstNotChainValid == NULL);                                     // CHAIN valid implies all parents are CHAIN valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_SCRIPTS)
-            assert(pindexFirstNotScriptsValid == NULL); // SCRIPTS valid implies all parents are SCRIPTS valid
+            assert(pindexFirstNotScriptsValid == NULL);                                   // SCRIPTS valid implies all parents are SCRIPTS valid
         if (pindexFirstInvalid == NULL) {
             // Checks for not-invalid blocks.
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.
@@ -6001,7 +6069,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         const Consensus::Params& params = Params().GetConsensus();
         auto currentEpoch = CurrentEpoch(GetHeight(), params);
         if (pfrom->nVersion < params.vUpgrades[currentEpoch].nProtocolVersion) {
-            LogPrint("masternode","peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrint("masternode", "peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater",
                                          params.vUpgrades[currentEpoch].nProtocolVersion));
@@ -6123,7 +6191,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
     // 1. The version message has been received
     // 2. Peer version is below the minimum version for the current epoch
     else if (pfrom->nVersion < chainparams.GetConsensus().vUpgrades[CurrentEpoch(GetHeight(), chainparams.GetConsensus())].nProtocolVersion) {
-        LogPrint("masternode","peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+        LogPrint("masternode", "peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
         pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                            strprintf("Version must be %d or greater",
                                      chainparams.GetConsensus().vUpgrades[CurrentEpoch(GetHeight(), chainparams.GetConsensus())].nProtocolVersion));
@@ -7243,4 +7311,80 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
         }
     }
     return mtx;
+}
+
+bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
+{
+    if (IsInitialBlockDownload(Params().GetConsensus())) {
+        return false;
+    }
+
+    CScript address;
+
+    // get transactino for tx
+    if (GetAddress(address, vin.prevout.hash, vin.prevout.n)) {
+        return GetLastPaymentBlock(vin.prevout.hash, address, lastHeight);
+    }
+
+    return false;
+}
+
+
+bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
+{
+    CBlockIndex* pindexSlow = NULL;
+
+    LOCK(cs_main);
+
+    int nHeight = -1;
+    {
+        CCoinsViewCache& view = *pcoinsTip;
+        const CCoins* coins = view.AccessCoins(hash);
+        if (coins)
+            nHeight = coins->nHeight;
+    }
+
+    int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks());
+    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
+    int scanHeight = chainActive.Height();
+
+
+    if (lastScanHeight > scanHeight ||
+        // do not count new tx
+        nHeight + MIN_LOCKED_AGE > scanHeight) {
+        return false;
+    }
+    int lastPayment = 0;
+    uint160 hashBytes;
+    int type = 0;
+
+    CTxDestination address1;
+    ExtractDestination(address, address1);
+
+    KeyIO keyIO(Params());
+    CTxDestination address2 = keyIO.DecodeDestination(keyIO.EncodeDestination(address1));
+
+    if (IsKeyDestination(address2)) {
+        auto x = std::get_if<CKeyID>(&address2);
+        memcpy(&hashBytes, x->begin(), 20);
+        type = CScript::P2PKH;
+    } else if (IsScriptDestination(address2)) {
+        auto x = std::get_if<CScriptID>(&address2);
+        memcpy(&hashBytes, x->begin(), 20);
+        type = CScript::P2SH;
+    } else {
+        return false;
+    }
+
+    std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
+
+    while (scanHeight >= lastScanHeight) {
+        if (GetAddressIndexMN(hashBytes, type, addressIndex, std::max(scanHeight - 10, lastScanHeight), scanHeight)) {
+            lastHeight = addressIndex[addressIndex.size() - 1].first.blockHeight;
+            return true;
+        }
+        scanHeight -= 10;
+    }
+
+    return false;
 }

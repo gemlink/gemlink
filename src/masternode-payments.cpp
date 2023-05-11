@@ -456,6 +456,8 @@ int CMasternodePayments::GetMinMasternodePaymentsProto()
     }
     if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
         minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
+    } else if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_XANDAR;
     }
     return minPeer;
 }
@@ -471,7 +473,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
 
     if (strCommand == "mnget") { // Masternode Payments Request Sync
         if (fLiteMode)
-            return; // disable all Obfuscation/Masternode related functionality
+            return;              // disable all Obfuscation/Masternode related functionality
 
         int nCountNeeded;
         vRecv >> nCountNeeded;
@@ -509,7 +511,10 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
             return;
         }
 
-        int nFirstBlock = nHeight - (mnodeman.CountEnabled() * 1.25);
+        int nCount = (mnodeman.CountEnabled() * 1.25);
+
+        int nFirstBlock = nHeight - nCount;
+
         if (winner.nBlockHeight < nFirstBlock || winner.nBlockHeight > nHeight + 20) {
             LogPrint("mnpayments", "mnw - winner out of range - FirstBlock %d Height %d bestHeight %d\n", nFirstBlock, winner.nBlockHeight, nHeight);
             return;
@@ -838,6 +843,7 @@ void CMasternodePayments::Sync(CNode* node, int nCountNeeded)
     }
 
     int nCount = (mnodeman.CountEnabled() * 1.25);
+
     if (nCountNeeded > nCount)
         nCountNeeded = nCount;
 

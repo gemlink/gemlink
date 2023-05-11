@@ -203,13 +203,12 @@ void CMasternode::Check(bool forceCheck)
     if (activeState == MASTERNODE_VIN_SPENT)
         return;
 
-
-    if (!IsPingedWithin(MASTERNODE_REMOVAL_SECONDS)) {
+    if (!IsPingedWithin(GetRemovalTime())) {
         activeState = MASTERNODE_REMOVE;
         return;
     }
 
-    if (!IsPingedWithin(MASTERNODE_EXPIRATION_SECONDS)) {
+    if (!IsPingedWithin(GetExpirationTime())) {
         activeState = MASTERNODE_EXPIRED;
         return;
     }
@@ -224,15 +223,18 @@ void CMasternode::Check(bool forceCheck)
         CMutableTransaction tx = CMutableTransaction();
         CScript dummyScript;
         dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
-        CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+
+        CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN), dummyScript);
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-            vout = CTxOut(19999.99 * COIN, dummyScript);
+            CAmount testingAmount = Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN);
+            vout = CTxOut(testingAmount, dummyScript);
         }
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         {
             TRY_LOCK(cs_main, lockMain);
-            if (!lockMain) return;
+            if (!lockMain)
+                return;
 
             if (!AcceptableInputs(mempool, state, CTransaction(tx), false, NULL)) {
                 activeState = MASTERNODE_VIN_SPENT;
@@ -280,7 +282,8 @@ int64_t CMasternode::GetLastPaid()
     // use a deterministic offset to break a tie -- 2.5 minutes
     int64_t nOffset = (UintToArith256(hash)).GetCompact(false) % 150;
 
-    int nMnCount = mnodeman.CountEnabled() * 1.25;
+    int nMnCount = (mnodeman.CountEnabled() * 1.25);
+
     int n = 0;
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
         if (n >= nMnCount) {
@@ -330,6 +333,16 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
     }
 
     return false;
+}
+
+int CMasternode::GetExpirationTime()
+{
+    return MASTERNODE_EXPIRATION_SECONDS;
+}
+
+int CMasternode::GetRemovalTime()
+{
+    return MASTERNODE_REMOVAL_SECONDS;
 }
 
 CMasternodeBroadcast::CMasternodeBroadcast() : CMasternode()
@@ -598,9 +611,10 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     CMutableTransaction tx = CMutableTransaction();
     CScript dummyScript;
     dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
-    CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+    CTxOut vout = CTxOut(Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN), dummyScript);
     if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-        vout = CTxOut(19999.99 * COIN, dummyScript);
+        CAmount testingAmount = Params().GetMasternodeCollateral(chainActive.Height() + 1) * COIN - (CAmount)(0.01 * COIN);
+        vout = CTxOut(testingAmount, dummyScript);
     }
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);

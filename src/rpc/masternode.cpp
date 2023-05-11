@@ -106,7 +106,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
                 mn->Status().find(strFilter) == string::npos &&
                 keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()).find(strFilter) == string::npos)
                 continue;
-
+            // LogPrintf("Get masternode info %s", keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
             std::string strStatus = mn->Status();
             std::string strHost;
             int port;
@@ -114,17 +114,34 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             CNetAddr node = CNetAddr(strHost, false);
             std::string strNetwork = GetNetworkName(node.GetNetwork());
 
+            CTxDestination address = keyIO.DecodeDestination(keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
+            CScript scriptPubKey = GetScriptForDestination(address);
+
+            int nHeight = 0;
+
+            // ver 1 - get from network
+            bool result = GetLastPaymentBlock(s.second.vin, nHeight);
+
+            // ver 2 - get locally
+            // CTxDestination address = keyIO.DecodeDestination(keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()));
+            // CScript scriptPubKey = GetScriptForDestination(address);
+            // bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, nHeight);
+
+            // LogPrintf("Get masternode result %d", result);
+            int unlockHeight = chainActive.Height() > nHeight + Params().GetmnLockBlocks() ? 0 : nHeight + Params().GetmnLockBlocks();
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
             obj.push_back(Pair("network", strNetwork));
             obj.push_back(Pair("ip", strHost));
             obj.push_back(Pair("txhash", strTxHash));
             obj.push_back(Pair("outidx", (uint64_t)oIdx));
-            obj.push_back(Pair("status", strStatus));
+            obj.push_back(Pair("status", strStatus == "EXPIRED" ? (result ? "UNLOCKING" : "EXPIRED") : strStatus));
             obj.push_back(Pair("addr", keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID())));
             obj.push_back(Pair("version", mn->protocolVersion));
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
             obj.push_back(Pair("lastpaid", (int64_t)mn->GetLastPaid()));
+            obj.push_back(Pair("lastpaidheight", nHeight));
+            obj.push_back(Pair("unlockheight", unlockHeight));
 
             ret.push_back(obj);
         }
@@ -764,6 +781,119 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
     return ret;
 }
 
+
+UniValue getmasternodepayments(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 2)
+        throw runtime_error(
+            "getmasternodepayments\n"
+            "\nPrint the masternode payments for the last n blocks\n"
+
+            "\nArguments:\n"
+
+            "\nResult (single winner):\n"
+            "[\n"
+            "  {\n"
+            "    \"nHeight\": n,           (numeric) block height\n"
+            "    \"winner\": {\n"
+            "      \"address\": \"xxxx\",    (string) SnowGem MN Address\n"
+            "      \"tx hash\": n,          (numeric) String\n"
+            "      \"tx index\": n,          (numeric) Number\n"
+            "    }\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("getmasternodepayments", "") + HelpExampleRpc("getmasternodepayments", ""));
+
+    uint256 txid;
+    int idx = -1;
+    if (params.size() >= 2) {
+        txid.SetHex(params[0].get_str());
+        idx = atoi(params[1].get_str());
+    }
+
+    UniValue ret(UniValue::VARR);
+
+    if (idx > -1) {
+        COutPoint prevout(txid, idx);
+        CTxIn vin(prevout);
+        int lastHeight = 0;
+        bool result = GetLastPaymentBlock(vin, lastHeight);
+
+        if (result) {
+            if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                UniValue obj(UniValue::VOBJ);
+
+                obj.push_back(Pair("nHeight", lastHeight));
+                obj.push_back(Pair("hash", txid.ToString()));
+                obj.push_back(Pair("idx", (uint64_t)idx));
+
+                ret.push_back(obj);
+            }
+        }
+        return ret;
+    }
+
+    KeyIO keyIO(Params());
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+    for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
+        const uint256& wtxid = it->first;
+        const CWalletTx* pcoin = &(*it).second;
+
+        if (!CheckFinalTx(*pcoin))
+            continue;
+
+        if (!pcoin->IsTrusted())
+            continue;
+
+        if (pcoin->IsCoinBase())
+            continue;
+
+        int nDepth = pcoin->GetDepthInMainChain();
+
+        for (unsigned int j = 0; j < pcoin->vout.size(); j++) {
+            CAmount masternodeCollateral = Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
+
+            CScript scriptPubKey;
+            if (pcoin->vout[j].nValue == masternodeCollateral) {
+                if (pwalletMain->IsSpent(pcoin->GetHash(), j)) {
+                    continue;
+                }
+
+                int lastHeight = 0;
+                scriptPubKey = pcoin->vout[j].scriptPubKey;
+                bool result = false;
+
+                COutPoint prevout(pcoin->GetHash(), j);
+                CTxIn vin(prevout);
+                result = GetLastPaymentBlock(vin, lastHeight);
+
+                if (result) {
+                    if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                        UniValue obj(UniValue::VOBJ);
+
+                        CTxDestination address1;
+                        ExtractDestination(scriptPubKey, address1);
+
+                        obj.push_back(Pair("lastpayment", lastHeight));
+                        obj.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
+                        obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+                        obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
+                        obj.push_back(Pair("idx", (uint64_t)j));
+
+                        ret.push_back(obj);
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
 UniValue getmasternodescores(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
@@ -1042,7 +1172,7 @@ UniValue getamiinfo(const UniValue& params, bool fHelp)
             "Returns an object containing various state info regarding block chain processing.\n"
             "\n"
             "\nExamples:\n" +
-            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", "") + "\n" + 
+            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", "") + "\n" +
             "For more information, go to https://github.com/apps-alis-is/glink.node");
 
     LOCK(cs_main);
