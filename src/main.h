@@ -112,6 +112,7 @@ static const bool DEFAULT_SPENTINDEX = false;
 static const bool DEFAULT_DB_COMPRESSION = true;
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 
+static const unsigned int MIN_LOCKED_AGE = 30; // blocks
 /**
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid
@@ -747,6 +748,8 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& ma
  */
 bool ContextualCheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& view, bool fScriptChecks, unsigned int flags, bool cacheStore, PrecomputedTransactionData& txdata, const Consensus::Params& consensusParams, uint32_t consensusBranchId, std::vector<CScriptCheck>* pvChecks = NULL);
 
+bool CheckMnTx(const CTransaction& tx);
+
 /** Check a transaction contextually against a set of consensus rules */
 bool ContextualCheckTransaction(const CTransaction& tx, CValidationState& state, const CChainParams& chainparams, int nHeight, int dosLevel, bool (*isInitBlockDownload)(const Consensus::Params&) = IsInitialBlockDownload);
 
@@ -847,6 +850,8 @@ public:
 bool GetTimestampIndex(const unsigned int& high, const unsigned int& low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int>>& hashes);
 bool GetSpentIndex(CSpentIndexKey& key, CSpentIndexValue& value);
 bool GetAddressIndex(uint160 addressHash, int type, std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex, int start = 0, int end = 0);
+bool GetAddressIndex(uint160 addressHash, int start, int end, int& blockHeight);
+bool GetAddressIndexMN(uint160 addressHash, int type, std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex, int start, int end);
 bool GetAddressUnspent(uint160 addressHash, int type, std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& unspentOutputs);
 
 /** Functions for disk access for blocks */
@@ -951,4 +956,6 @@ std::pair<std::map<CBlockIndex*, std::list<CTransaction>>, uint64_t> DrainRecent
 void SetChainNotifiedSequence(const CChainParams& chainparams, uint64_t recentlyConflictedSequence);
 bool ChainIsFullyNotified(const CChainParams& chainparams);
 
+bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline = false);
+bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastTime);
 #endif // BITCOIN_MAIN_H

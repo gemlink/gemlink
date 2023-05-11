@@ -241,6 +241,9 @@ public:
         return lastPing.IsNull() ? false : now - lastPing.sigTime < seconds;
     }
 
+    int GetExpirationTime();
+    int GetRemovalTime();
+
     void SetSpent() { fCollateralSpent = true; }
 
     void Disable()
@@ -270,13 +273,20 @@ public:
         std::string strStatus = "ACTIVE";
 
         LOCK(cs);
-        if (activeState == CMasternode::MASTERNODE_PRE_ENABLED) strStatus = "PRE_ENABLED";
-        if (activeState == CMasternode::MASTERNODE_ENABLED) strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_EXPIRED) strStatus = "EXPIRED";
-        if (activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
-        if (activeState == CMasternode::MASTERNODE_REMOVE) strStatus = "REMOVE";
-        if (activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
-        if (activeState == CMasternode::MASTERNODE_MISSING) strStatus = "MISSING";
+        if (activeState == CMasternode::MASTERNODE_PRE_ENABLED)
+            strStatus = "PRE_ENABLED";
+        if (activeState == CMasternode::MASTERNODE_ENABLED)
+            strStatus = "ENABLED";
+        if (activeState == CMasternode::MASTERNODE_EXPIRED)
+            strStatus = "EXPIRED";
+        if (activeState == CMasternode::MASTERNODE_VIN_SPENT)
+            strStatus = "VIN_SPENT";
+        if (activeState == CMasternode::MASTERNODE_REMOVE)
+            strStatus = "REMOVE";
+        if (activeState == CMasternode::MASTERNODE_POS_ERROR)
+            strStatus = "POS_ERROR";
+        if (activeState == CMasternode::MASTERNODE_MISSING)
+            strStatus = "MISSING";
 
         return strStatus;
     }

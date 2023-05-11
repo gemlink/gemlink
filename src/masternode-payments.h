@@ -168,7 +168,6 @@ public:
 
     int nBlockHeight;
     CScript payee;
-
     CMasternodePaymentWinner();
 
     CMasternodePaymentWinner(CTxIn vinIn);
@@ -237,6 +236,7 @@ public:
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
     std::map<COutPoint, int> mapMasternodesLastVote; // prevout.hash + prevout.n, nBlockHeight
 
+    std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeList;
     CMasternodePayments()
     {
         nLastBlockHeight = 0;
@@ -288,6 +288,5 @@ public:
         READWRITE(mapMasternodeBlocks);
     }
 };
-
 
 #endif

@@ -126,8 +126,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"getaddressdeltas", 0},
         {"getaddressutxos", 0},
         {"getaddressmempool", 0},
-        // disabled until removal of the legacy 'masternode' command
-        //{"startmasternode", 1},
+        //{"startmasternode", 3},
         {"mnvoteraw", 1},
         {"mnvoteraw", 4},
         {"zcrawjoinsplit", 1},
@@ -162,7 +161,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"z_importviewingkey", 2},
         {"z_getpaymentdisclosure", 1},
         {"z_getpaymentdisclosure", 2},
-        { "z_getnotescount", 0}};
+        {"z_getnotescount", 0}};
 
 class CRPCConvertTable
 {

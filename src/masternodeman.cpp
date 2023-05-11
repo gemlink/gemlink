@@ -21,7 +21,7 @@
 #include <boost/thread.hpp>
 
 #define MN_WINNER_MINIMUM_AGE 8000 // Age in seconds. This should be > MASTERNODE_REMOVAL_SECONDS to avoid misconfigured new nodes in the list.
-
+#define MN_WINNER_MINIMUM_AGE_TESTNET 200
 /** Masternode manager */
 CMasternodeMan mnodeman;
 CActiveMasternode activeMasternode;
@@ -275,9 +275,10 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
         auto activeState = (*it).activeState;
         if (activeState == CMasternode::MASTERNODE_REMOVE ||
             activeState == CMasternode::MASTERNODE_VIN_SPENT ||
-            (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED) ||
+            // do not remove expire mn anyway
+            (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
             (*it).protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
-            LogPrint("masternode", "CMasternodeMan: Removing inactive Masternode %s - %i now\n", (*it).vin.prevout.hash.ToString(), size() - 1);
+            LogPrint("masternode", "CMasternodeMan: Removing inactive Masternode %s - %i activeState %inow\n", (*it).vin.prevout.hash.ToString(), size() - 1, activeState);
 
             // erase all of the broadcasts we've seen from this vin
             //  -- if we missed a few pings and the node was removed, this will allow is to get it back without them
@@ -378,6 +379,9 @@ int CMasternodeMan::stable_size()
     int nStable_size = 0;
     int nMinProtocol = ActiveProtocol();
     int64_t nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE;
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN) {
+        nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE_TESTNET;
+    }
     int64_t nMasternode_Age = 0;
 
     for (CMasternode& mn : vMasternodes) {
@@ -610,6 +614,9 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
 {
     std::vector<pair<int64_t, CTxIn>> vecMasternodeScores;
     int64_t nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE;
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN) {
+        nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE_TESTNET;
+    }
     int64_t nMasternode_Age = 0;
 
     // make sure we know about this block
@@ -1036,7 +1043,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 LogPrint("masternode", "dsee - Accepted OLD Masternode entry %i %i\n", count, current);
                 Add(mn);
             }
-            if (mn.IsEnabled()) {
+            if (pmn->IsEnabled()) {
                 TRY_LOCK(cs_vNodes, lockNodes);
                 if (!lockNodes)
                     return;

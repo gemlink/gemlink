@@ -1251,10 +1251,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
 
-    // if (fPrintToDebugLog)
-    //     OpenDebugLog();
+        // if (fPrintToDebugLog)
+        //     OpenDebugLog();
 
-    // LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+        // LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef ENABLE_WALLET
     LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
 #endif
@@ -1551,7 +1551,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     nTotalCache -= nBlockTreeDBCache;
     int64_t nCoinDBCache = std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23)); // use 25%-50% of the remainder for disk cache
     nTotalCache -= nCoinDBCache;
-    nCoinCacheUsage = nTotalCache; // the rest goes to in-memory cache
+    nCoinCacheUsage = nTotalCache;                                                   // the rest goes to in-memory cache
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Using %.1fMiB for block index database\n", nBlockTreeDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for chain state database\n", nCoinDBCache * (1.0 / 1024 / 1024));
@@ -1713,7 +1713,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         if (!pwalletMain)
             return false;
     }
-#else // ENABLE_WALLET
+#else  // ENABLE_WALLET
     LogPrintf("No wallet support compiled in!\n");
 #endif // !ENABLE_WALLET
 
@@ -1755,15 +1755,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // view of the chaintip, is passed to ThreadNotifyWallets before the chain
     // tip changes again.
     {
-        CBlockIndex *pindexLastTip;
+        CBlockIndex* pindexLastTip;
         {
             LOCK(cs_main);
             pindexLastTip = chainActive.Tip();
         }
         boost::function<void()> threadnotifywallets = boost::bind(&ThreadNotifyWallets, pindexLastTip);
         threadGroup.create_thread(
-            boost::bind(&TraceThread<boost::function<void()>>, "txnotify", threadnotifywallets)
-        );
+            boost::bind(&TraceThread<boost::function<void()>>, "txnotify", threadnotifywallets));
     }
 
     // ********************************************************* Step 9: data directory maintenance

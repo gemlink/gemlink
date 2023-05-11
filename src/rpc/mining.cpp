@@ -13,6 +13,7 @@
 #endif
 #include "init.h"
 #include "main.h"
+#include "masternode-sync.h"
 #include "metrics.h"
 #include "miner.h"
 #include "net.h"

@@ -98,6 +98,7 @@ public:
     bool Valid();
 
     void SeekToFirst();
+    void SeekToLast();
 
     template <typename K>
     void Seek(const K& key)
@@ -110,6 +111,7 @@ public:
     }
 
     void Next();
+    void Prev();
 
     template <typename K>
     bool GetKey(K& key)

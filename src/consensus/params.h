@@ -6,8 +6,8 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
-#include "uint256.h"
 #include "key_constants.h"
+#include "uint256.h"
 #include <boost/optional.hpp>
 #include <optional>
 int32_t MAX_BLOCK_SIZE(int32_t height);
@@ -34,6 +34,7 @@ enum UpgradeIndex {
     UPGRADE_WAKANDA,
     UPGRADE_ATLANTIS,
     UPGRADE_MORAG,
+    UPGRADE_XANDAR,
     // NOTE: Also add new upgrades to NetworkUpgradeInfo in upgrades.cpp
     MAX_NETWORK_UPGRADES
 };
@@ -171,6 +172,7 @@ struct Params {
     unsigned int eh_epoch_2_start() const { return eh_epoch_2_starttime; }
     bool NetworkUpgradeActive(int nHeight, Consensus::UpgradeIndex idx) const;
     int validEHparameterList(EHparameters* ehparams, unsigned int blocktime) const;
+
     uint256 nMinimumChainWork;
 
     /** Parameters for LWMA3 **/

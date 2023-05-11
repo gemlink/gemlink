@@ -310,6 +310,7 @@ extern UniValue getmasternodeoutputs(const UniValue& params, bool fHelp);
 extern UniValue listmasternodeconf(const UniValue& params, bool fHelp);
 extern UniValue getmasternodestatus(const UniValue& params, bool fHelp);
 extern UniValue getmasternodewinners(const UniValue& params, bool fHelp);
+extern UniValue getmasternodepayments(const UniValue& params, bool fHelp);
 extern UniValue getmasternodescores(const UniValue& params, bool fHelp);
 extern UniValue startalias(const UniValue& params, bool fHelp);
 extern UniValue getamiinfo(const UniValue& params, bool fHelp);
