@@ -159,7 +159,7 @@ struct CRecipient {
 typedef std::map<std::string, std::string> mapValue_t;
 
 
-static inline void ReadOrderPos(int64_t& nOrderPos, mapValue_t& mapValue)
+static void ReadOrderPos(int64_t& nOrderPos, mapValue_t& mapValue)
 {
     if (!mapValue.count("n")) {
         nOrderPos = -1; // TODO: calculate elsewhere
@@ -169,7 +169,7 @@ static inline void ReadOrderPos(int64_t& nOrderPos, mapValue_t& mapValue)
 }
 
 
-static inline void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue)
+static void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue)
 {
     if (nOrderPos == -1)
         return;
@@ -315,10 +315,8 @@ public:
      * See the comment in that class for a full description.
      */
     SaplingNoteData() : witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
-    //SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk {ivk}, witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
-    //SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk {ivk}, witnessHeight {-1}, nullifier(n), witnessRootValidated {false} { }
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : witnessHeight {-1}, ivk {ivk}, nullifier(), witnessRootValidated {false} { }
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : witnessHeight {-1}, ivk {ivk}, nullifier(n), witnessRootValidated {false} { }
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk {ivk}, witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk {ivk}, witnessHeight {-1}, nullifier(n), witnessRootValidated {false} { }
 
     std::list<SaplingWitness> witnesses;
     int witnessHeight;

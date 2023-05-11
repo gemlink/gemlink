@@ -21,8 +21,7 @@ public:
         ProofVerifier& verifier,
         const Ed25519VerificationKey& joinSplitPubKey,
         const JSDescription& jsdesc
-        //) : jsdesc(jsdesc), verifier(verifier), joinSplitPubKey(joinSplitPubKey) {}
-        ) : verifier(verifier), joinSplitPubKey(joinSplitPubKey), jsdesc(jsdesc) {}
+        ) : jsdesc(jsdesc), verifier(verifier), joinSplitPubKey(joinSplitPubKey) {}
 
     bool operator()(const libzcash::PHGRProof& proof) const
     {

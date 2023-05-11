@@ -348,49 +348,44 @@ uint32_t CCoinsViewCache::PreloadHistoryTree(uint32_t epochId, bool extra, std::
     uint32_t peak_pos = 0;
     uint32_t total_peaks = 0;
 
-    /*
-    Assume the following example peak layout with 14 leaves, and 25 stored nodes in
-    total (the "tree length"):
-    
-                P
-               /\
-              /  \
-             / \  \
-           /    \  \  Altitude
-        _A_      \  \    3
-      _/   \_     B  \   2
-     / \   / \   / \  C  1
-    /\ /\ /\ /\ /\ /\ /\ 0
-    
-    We start by determining the altitude of the highest peak (A).
-    */
+    // Assume the following example peak layout with 14 leaves, and 25 stored nodes in
+    // total (the "tree length"):
+    //
+    //             P
+    //            /\
+    //           /  \
+    //          / \  \
+    //        /    \  \  Altitude
+    //     _A_      \  \    3
+    //   _/   \_     B  \   2
+    //  / \   / \   / \  C  1
+    // /\ /\ /\ /\ /\ /\ /\ 0
+    //
+    // We start by determining the altitude of the highest peak (A).
     alt = altitude(treeLength);
 
-    /*
-    We determine the position of the highest peak (A) by pretending it is the right
-    sibling in a tree, and its left-most leaf has position 0. Then the left sibling
-    of (A) has position -1, and so we can "jump" to the peak's position by computing
-    -1 + 2^(alt + 1) - 1.
-    */
+    // We determine the position of the highest peak (A) by pretending it is the right
+    // sibling in a tree, and its left-most leaf has position 0. Then the left sibling
+    // of (A) has position -1, and so we can "jump" to the peak's position by computing
+    // -1 + 2^(alt + 1) - 1.
     peak_pos = (1 << (alt + 1)) - 2;
 
-    /*
-    Now that we have the position and altitude of the highest peak (A), we collect
-    the remaining peaks (B, C). We navigate the peaks as if they were nodes in this
-    Merkle tree (with additional imaginary nodes 1 and 2, that have positions beyond
-    the MMR's length):
-    
-                / \
-               /   \
-              /     \
-            /         \
-          A ==========> 1
-         / \          //  \
-       _/   \_       B ==> 2
-      /\     /\     /\    //
-     /  \   /  \   /  \   C
-    /\  /\ /\  /\ /\  /\ /\
-    */
+    // Now that we have the position and altitude of the highest peak (A), we collect
+    // the remaining peaks (B, C). We navigate the peaks as if they were nodes in this
+    // Merkle tree (with additional imaginary nodes 1 and 2, that have positions beyond
+    // the MMR's length):
+    //
+    //             / \
+    //            /   \
+    //           /     \
+    //         /         \
+    //       A ==========> 1
+    //      / \          //  \
+    //    _/   \_       B ==> 2
+    //   /\     /\     /\    //
+    //  /  \   /  \   /  \   C
+    // /\  /\ /\  /\ /\  /\ /\
+    //
     while (alt != 0) {
         // If peak_pos is out of bounds of the tree, we compute the position of its left
         // child, and drop down one level in the tree.
@@ -420,21 +415,20 @@ uint32_t CCoinsViewCache::PreloadHistoryTree(uint32_t epochId, bool extra, std::
     alt = last_peak_alt;
     peak_pos = last_peak_pos;
 
-    /*
-                P
-               /\
-              /  \
-             / \  \
-           /    \  \
-        _A_      \  \
-      _/   \_     B  \
-     / \   / \   / \  C
-    /\ /\ /\ /\ /\ /\ /\
-                      D E
-    
-    For extra peaks needed for deletion, we do extra pass on right slope of the last peak
-    and add those nodes + their siblings. Extra would be (D, E) for the picture above.
-    */
+
+    //             P
+    //            /\
+    //           /  \
+    //          / \  \
+    //        /    \  \
+    //     _A_      \  \
+    //   _/   \_     B  \
+    //  / \   / \   / \  C
+    // /\ /\ /\ /\ /\ /\ /\
+    //                   D E
+    //
+    // For extra peaks needed for deletion, we do extra pass on right slope of the last peak
+    // and add those nodes + their siblings. Extra would be (D, E) for the picture above.
     while (alt > 0) {
         uint32_t left_pos = peak_pos - (1 << alt);
         uint32_t right_pos = peak_pos - 1;

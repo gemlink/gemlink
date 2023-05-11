@@ -48,8 +48,8 @@ class CInv;
 class CScriptCheck;
 class CValidationInterface;
 class CValidationState;
+class PrecomputedTransactionData;
 
-struct PrecomputedTransactionData;
 struct CNodeStateStats;
 
 /** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/

@@ -1401,7 +1401,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
         pcoinsTip->GetSproutAnchorAt(blockRoot, sproutTree);
 
         //Cycle through blocks and transactions building sprout tree until the commitment needed is reached
-        const CBlock* pblock;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
+        const CBlock* pblock;
         CBlock block;
         ReadBlockFromDisk(block, pblockindex, Params().GetConsensus());
         pblock = &block;
@@ -1491,7 +1491,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
         pcoinsTip->GetSaplingAnchorAt(blockRoot, saplingTree);
 
         //Cycle through blocks and transactions building sapling tree until the commitment needed is reached
-        const CBlock* pblock;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
+        const CBlock* pblock;
         CBlock block;
         ReadBlockFromDisk(block, pblockindex, Params().GetConsensus());
         pblock = &block;
@@ -4888,7 +4888,7 @@ bool CWallet::DelAddressBook(const CTxDestination& address)
         if (fFileBacked) {
             // Delete destdata tuples associated with address
             std::string strAddress = keyIO.EncodeDestination(address);
-            for (const std::pair<const string, string> & item : mapAddressBook[address].destdata) {
+            for (const PAIRTYPE(string, string) & item : mapAddressBook[address].destdata) {
                 CWalletDB(strWalletFile).EraseDestData(strAddress, item.first);
             }
         }
@@ -5172,7 +5172,7 @@ std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAcco
 {
     LOCK(cs_wallet);
     set<CTxDestination> result;
-    for (const std::pair<const CTxDestination, CAddressBookData> & item : mapAddressBook) {
+    for (const PAIRTYPE(CTxDestination, CAddressBookData) & item : mapAddressBook) {
         const CTxDestination& address = item.first;
         const string& strName = item.second.name;
         if (strName == strAccount)

@@ -128,7 +128,7 @@ std::vector<double> benchmark_create_joinsplit_threaded(int nThreads)
         tasks.emplace_back(task.get_future());
         threads.emplace_back(std::move(task));
     }
-    //std::future_status status;	// -Wunused-variable
+    std::future_status status;
     for (auto it = tasks.begin(); it != tasks.end(); it++) {
         it->wait();
         ret.push_back(it->get());
@@ -157,7 +157,7 @@ double benchmark_solve_equihash()
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << I;
 
-    //const Consensus::Params& params = Params(CBaseChainParams::MAIN).GetConsensus();	// -Wunused-variable
+    const Consensus::Params& params = Params(CBaseChainParams::MAIN).GetConsensus();
     unsigned int n = 200;
     unsigned int k = 9;
     eh_HashState eh_state;
@@ -185,7 +185,7 @@ std::vector<double> benchmark_solve_equihash_threaded(int nThreads)
         tasks.emplace_back(task.get_future());
         threads.emplace_back(std::move(task));
     }
-    //std::future_status status;	// -Wunused-variable
+    std::future_status status;
     for (auto it = tasks.begin(); it != tasks.end(); it++) {
         it->wait();
         ret.push_back(it->get());
@@ -483,10 +483,10 @@ double benchmark_loadwallet()
 {
     pre_wallet_load();
     struct timeval tv_start;
-    //bool fFirstRunRet=true;	// -Wunused-variable
+    bool fFirstRunRet=true;
     timer_start(tv_start);
     pwalletMain = new CWallet("wallet.dat");
-    //DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRunRet);	// -Wunused-variable
+    DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRunRet);
     auto res = timer_stop(tv_start);
     post_wallet_load();
     return res;
@@ -656,7 +656,7 @@ double benchmark_verify_sapling_output()
                 output.zkproof.begin()
             );
 
-    //double t = timer_stop(tv_start);	// -Wunused-variable
+    double t = timer_stop(tv_start);
     librustzcash_sapling_verification_ctx_free(ctx);
     if (!result) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "librustzcash_sapling_check_output() should return true");

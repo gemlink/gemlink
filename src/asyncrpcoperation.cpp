@@ -36,10 +36,10 @@ AsyncRPCOperation::AsyncRPCOperation() : error_code_(0), error_message_()
     set_state(OperationStatus::READY);
 }
 
-//AsyncRPCOperation::AsyncRPCOperation(const AsyncRPCOperation& o) : id_(o.id_), creation_time_(o.creation_time_), state_(o.state_.load()),
-AsyncRPCOperation::AsyncRPCOperation(const AsyncRPCOperation& o) : result_(o.result_), error_code_(o.error_code_), error_message_(o.error_message_),
+AsyncRPCOperation::AsyncRPCOperation(const AsyncRPCOperation& o) : id_(o.id_), creation_time_(o.creation_time_), state_(o.state_.load()),
                                                                    start_time_(o.start_time_), end_time_(o.end_time_),
-                                                                   id_(o.id_)
+                                                                   error_code_(o.error_code_), error_message_(o.error_message_),
+                                                                   result_(o.result_)
 {
 }
 

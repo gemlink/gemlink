@@ -35,7 +35,7 @@ bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblo
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
-    //unsigned int nProofOfWorkLimitTop = UintToArith256(params.powLimitTop).GetCompact();
+    unsigned int nProofOfWorkLimitTop = UintToArith256(params.powLimitTop).GetCompact();
 
     // Genesis block
     if (pindexLast == NULL)
@@ -142,8 +142,7 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
 
     arith_uint256 sumTarget, previousDiff, nextTarget;
     int64_t thisTimestamp, previousTimestamp;
-    //int64_t t = 0, j = 0, solvetimeSum = 0;
-    int64_t t = 0, j = 0;
+    int64_t t = 0, j = 0, solvetimeSum = 0;
 
     const CBlockIndex* blockPreviousTimestamp = pindexLast->GetAncestor(height - N);
     previousTimestamp = blockPreviousTimestamp->GetBlockTime();

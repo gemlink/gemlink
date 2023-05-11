@@ -605,7 +605,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
 
-    int nChainHeight = 0;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
+    int nChainHeight = 0;
     {
         TRY_LOCK(cs_main, lockMain);
         if (!lockMain) {

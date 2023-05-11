@@ -121,7 +121,7 @@ void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
  * Returns true if there are nRequired or more blocks of minVersion or above
  * in the last Consensus::Params::nMajorityWindow blocks, starting at pstart and going backwards.
  */
-//static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams);
+static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams);
 static void CheckBlockIndex();
 
 /** Constant stuff for coinbase transactions we create: */
@@ -1574,7 +1574,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
             // do all inputs exist?
             // Note that this does not check for the presence of actual outputs (see the next check for that),
             // and only helps with filling in pfMissingInputs (to determine missing vs spent).
-            for (const CTxIn & txin : tx.vin) {
+            for (const CTxIn txin : tx.vin) {
                 if (!view.HaveCoins(txin.prevout.hash)) {
                     if (pfMissingInputs)
                         *pfMissingInputs = true;
@@ -1731,7 +1731,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
         }
     }
 
-    //int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0		// -Wunused-variable, 	// Ky
+    int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0;
     // SyncWithWallets(tx, NULL, nHeight);
 
     return true;
@@ -1855,7 +1855,7 @@ bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransact
             // do all inputs exist?
             // Note that this does not check for the presence of actual outputs (see the next check for that),
             // only helps filling in pfMissingInputs (to determine missing vs spent).
-            for (const CTxIn & txin : tx.vin) {
+            for (const CTxIn txin : tx.vin) {
                 if (!view.HaveCoins(txin.prevout.hash)) {
                     if (pfMissingInputs)
                         *pfMissingInputs = true;
@@ -3776,7 +3776,6 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     return true;
 }
 
-/*
 static void NotifyHeaderTip(const Consensus::Params& params)
 {
     bool fNotify = false;
@@ -3799,7 +3798,6 @@ static void NotifyHeaderTip(const Consensus::Params& params)
         uiInterface.NotifyHeaderTip(fInitialBlockDownload, pindexHeader);
     }
 }
-*/
 
 
 /**
@@ -3816,7 +3814,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         boost::this_thread::interruption_point();
 
         bool fInitialDownload;
-        int nNewHeight;		// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
+        int nNewHeight;
         {
             LOCK(cs_main);
             pindexMostWork = FindMostWorkChain();
@@ -4575,7 +4573,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     return true;
 }
 
-/*
 static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams)
 {
     unsigned int nFound = 0;
@@ -4586,7 +4583,6 @@ static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned 
     }
     return (nFound >= nRequired);
 }
-*/
 
 
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, CNode* pfrom, CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
@@ -4839,7 +4835,7 @@ bool static LoadBlockIndexDB()
     // Calculate nChainWork
     vector<pair<int, CBlockIndex*>> vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex) {
+    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
     }
@@ -4926,7 +4922,7 @@ bool static LoadBlockIndexDB()
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     set<int> setBlkDataFiles;
-    for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex) {
+    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         if (pindex->nStatus & BLOCK_HAVE_DATA) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -4971,7 +4967,7 @@ bool static LoadBlockIndexDB()
     }
 
     // Fill in-memory data
-    for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex) {
+    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         // - This relationship will always be true even if pprev has multiple
         //   children, because hashSproutAnchor is technically a property of pprev,
@@ -6361,7 +6357,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         bool ignoreFees = false;
         CTxIn vin;
         vector<unsigned char> vchSig;
-        //int64_t sigTime;
+        int64_t sigTime;
 
         vRecv >> tx;
 
