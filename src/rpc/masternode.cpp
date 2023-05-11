@@ -478,8 +478,8 @@ UniValue startmasternode(const UniValue& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
 
         bool found = false;
-        int successful = 0;
-        int failed = 0;
+        //int successful = 0;
+        //int failed = 0;
 
         UniValue resultsObj(UniValue::VARR);
         UniValue statusObj(UniValue::VOBJ);

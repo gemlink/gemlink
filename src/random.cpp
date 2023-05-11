@@ -21,6 +21,8 @@
 
 #include <librustzcash.h>
 
+// -Wunused-function	// Ky
+/*
 static inline int64_t GetPerformanceCounter()
 {
     int64_t nCounter = 0;
@@ -33,6 +35,7 @@ static inline int64_t GetPerformanceCounter()
 #endif
     return nCounter;
 }
+*/
 
 void GetRandBytes(unsigned char* buf, size_t num)
 {

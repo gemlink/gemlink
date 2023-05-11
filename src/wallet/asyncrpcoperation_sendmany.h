@@ -25,7 +25,7 @@
 #include <rust/ed25519/types.h>
 
 using namespace libzcash;
-class TxValues;
+struct TxValues;
 
 class SendManyRecipient {
 public:

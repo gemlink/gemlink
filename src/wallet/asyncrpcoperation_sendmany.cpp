@@ -67,7 +67,8 @@ AsyncRPCOperation_sendmany::AsyncRPCOperation_sendmany(
     std::vector<SendManyRecipient> zOutputs,
     int minDepth,
     CAmount fee,
-    UniValue contextInfo) : tx_(contextualTx), fromaddress_(fromAddress), t_outputs_(tOutputs), z_outputs_(zOutputs), mindepth_(minDepth), fee_(fee), contextinfo_(contextInfo)
+    //UniValue contextInfo) : tx_(contextualTx), fromaddress_(fromAddress), t_outputs_(tOutputs), z_outputs_(zOutputs), mindepth_(minDepth), fee_(fee), contextinfo_(contextInfo)
+    UniValue contextInfo) : contextinfo_(contextInfo), fee_(fee), mindepth_(minDepth), fromaddress_(fromAddress), t_outputs_(tOutputs), z_outputs_(zOutputs), tx_(contextualTx)
 {
     assert(fee_ >= 0);
 
