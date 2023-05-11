@@ -128,7 +128,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
             isminetype mine = pwalletMain ? IsMine(*pwalletMain, dest) : ISMINE_NO;
 
-            const string& strName = item.second.name;
+            //const string& strName = item.second.name;
             nBalance = getBalanceTaddr(keyIO.EncodeDestination(dest), nMinDepth, false);
 
             addr.push_back(Pair("amount", ValueFromAmount(nBalance)));
@@ -207,7 +207,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     // get transactions
     string strAccount = "";
     int nCount = 200;
-    int nFrom = 0;
+    //int nFrom = 0;
     isminefilter filter = ISMINE_SPENDABLE;
 
     UniValue trans(UniValue::VARR);

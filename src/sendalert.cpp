@@ -53,7 +53,7 @@ the bad alert.
 #include "alertkeys.h"
 
 
-static const int64_t DAYS = 24 * 60 * 60;
+//static const int64_t DAYS = 24 * 60 * 60;
 
 void ThreadSendAlert()
 {
