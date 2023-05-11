@@ -56,7 +56,7 @@ bool IsBudgetCollateralValid(const uint256& nTxCollateralHash, const uint256& nE
     findScript << OP_RETURN << ToByteVector(nExpectedHash);
 
     bool foundOpReturn = false;
-    for (const CTxOut o : txCollateral.vout) {
+    for (const CTxOut & o : txCollateral.vout) {
         if (!o.scriptPubKey.IsNormalPaymentScript() && !o.scriptPubKey.IsUnspendable()) {
             strError = strprintf("Invalid Script %s", txCollateral.ToString());
             LogPrint("masternode", "CBudgetProposalBroadcast::IsBudgetCollateralValid - %s\n", strError);
@@ -1268,7 +1268,7 @@ void CBudgetManager::Sync(CNode* pfrom, const uint256& nProp, bool fPartial)
     */
     int nInvCount = 0;
 
-    std::map<uint256, CBudgetProposalBroadcast>::iterator it1 = mapSeenMasternodeBudgetProposals.begin();
+    //std::map<uint256, CBudgetProposalBroadcast>::iterator it1 = mapSeenMasternodeBudgetProposals.begin();	// -Wunused-variable
     for (auto& it : mapSeenMasternodeBudgetProposals) {
         CBudgetProposal* pbudgetProposal = FindProposal(it.first);
         if (pbudgetProposal && pbudgetProposal->IsValid() && (nProp.IsNull() || it.first == nProp)) {
@@ -1670,10 +1670,10 @@ void CBudgetProposalBroadcast::Relay()
 CBudgetVote::CBudgetVote() : CSignedMessage(),
                              fValid(true),
                              fSynced(false),
-                             vin(),
                              nProposalHash(uint256()),
                              nVote(VOTE_ABSTAIN),
-                             nTime(0)
+                             nTime(0),
+                             vin()
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -1684,10 +1684,10 @@ CBudgetVote::CBudgetVote() : CSignedMessage(),
 CBudgetVote::CBudgetVote(CTxIn vinIn, uint256 nProposalHashIn, VoteDirection nVoteIn) : CSignedMessage(),
                                                                                         fValid(true),
                                                                                         fSynced(false),
-                                                                                        vin(vinIn),
                                                                                         nProposalHash(nProposalHashIn),
                                                                                         nVote(nVoteIn),
-                                                                                        nTime(GetAdjustedTime())
+                                                                                        nTime(GetAdjustedTime()),
+                                                                                        vin(vinIn)
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -1730,21 +1730,22 @@ UniValue CBudgetVote::ToJSON() const
 
 CFinalizedBudget::CFinalizedBudget() : fAutoChecked(false),
                                        fValid(true),
-                                       strBudgetName(""),
                                        strInvalid(),
+                                       strBudgetName(""),
                                        nBlockStart(0),
                                        vecBudgetPayments(),
                                        mapVotes(),
-                                       nTime(0),
-                                       nFeeTXHash(uint256())
+                                       nFeeTXHash(uint256()),
+                                       nTime(0)
+
 {
 }
 CFinalizedBudget::CFinalizedBudget(const CFinalizedBudget& other) : fAutoChecked(false),
                                                                     fValid(true),
+                                                                    strInvalid(),
                                                                     strBudgetName(other.strBudgetName),
                                                                     nBlockStart(other.nBlockStart),
                                                                     vecBudgetPayments(other.vecBudgetPayments),
-                                                                    strInvalid(),
                                                                     mapVotes(other.mapVotes),
                                                                     nFeeTXHash(other.nFeeTXHash),
                                                                     nTime(other.nTime)

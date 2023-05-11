@@ -62,7 +62,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
             return;
         }
 
-        for (const CTxOut o : tx.vout) {
+        for (const CTxOut & o : tx.vout) {
             // IX supports normal scripts and unspendable scripts (used in DS collateral and Budget collateral).
             // TODO: Look into other script types that are normal and can be included
             if (!o.scriptPubKey.IsNormalPaymentScript() && !o.scriptPubKey.IsUnspendable()) {
@@ -180,10 +180,10 @@ bool IsIXTXValid(const CTransaction& txCollateral)
     CAmount nValueOut = 0;
     bool missingTx = false;
 
-    for (const CTxOut o : txCollateral.vout)
+    for (const CTxOut & o : txCollateral.vout)
         nValueOut += o.nValue;
 
-    for (const CTxIn i : txCollateral.vin) {
+    for (const CTxIn & i : txCollateral.vin) {
         CTransaction tx2;
         uint256 hash;
         if (GetTransaction(i.prevout.hash, tx2, Params().GetConsensus(), hash, true)) {
@@ -220,7 +220,7 @@ bool IsIXTXValid(const CTransaction& txCollateral)
 
 int64_t CreateNewLock(CTransaction tx)
 {
-    int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););
+    //int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););	// -Wunused-variable
     int64_t nTxAge = 0;
     BOOST_REVERSE_FOREACH (CTxIn i, tx.vin) {
         nTxAge = GetInputAge(i);

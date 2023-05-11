@@ -42,6 +42,8 @@
 
 using namespace libzcash;
 
+// -Wunused-function	// Ky
+/*
 static int find_output(UniValue obj, int n) {
     UniValue outputMapValue = find_value(obj, "outputmap");
     if (!outputMapValue.isArray()) {
@@ -58,6 +60,7 @@ static int find_output(UniValue obj, int n) {
 
     throw std::logic_error("n is not present in outputmap");
 }
+*/
 
 AsyncRPCOperation_shieldcoinbase::AsyncRPCOperation_shieldcoinbase(
         TransactionBuilder builder,
@@ -66,7 +69,7 @@ AsyncRPCOperation_shieldcoinbase::AsyncRPCOperation_shieldcoinbase(
         std::string toAddress,
         CAmount fee,
         UniValue contextInfo) :
-        builder_(builder), tx_(contextualTx), inputs_(inputs), fee_(fee), contextinfo_(contextInfo)
+        contextinfo_(contextInfo), fee_(fee), inputs_(inputs), builder_(builder), tx_(contextualTx)
 {
     assert(contextualTx.nVersion >= 2);  // transaction format version must support vjoinsplit
 
@@ -190,7 +193,7 @@ bool AsyncRPCOperation_shieldcoinbase::main_impl() {
 
     CAmount minersFee = fee_;
 
-    size_t numInputs = inputs_.size();
+    //size_t numInputs = inputs_.size();	// -Wunused-variable	// Ky
 
     CAmount targetAmount = 0;
     for (ShieldCoinbaseUTXO & utxo : inputs_) {

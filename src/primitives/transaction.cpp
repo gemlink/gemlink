@@ -82,9 +82,10 @@ std::string CTxOut::ToString() const
     return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s, address=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey).substr(0, 30), keyIO.EncodeDestination(address1));
 }
 
-CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), fOverwintered(false), nVersionGroupId(0), nExpiryHeight(0), nLockTime(0), valueBalance(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
-                                                                   vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime),
+CMutableTransaction::CMutableTransaction() : fOverwintered(false), nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), nVersionGroupId(0), nLockTime(0), nExpiryHeight(0), valueBalance(0) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : fOverwintered(tx.fOverwintered), nVersion(tx.nVersion), nVersionGroupId(tx.nVersionGroupId),
+                                                                   vin(tx.vin), vout(tx.vout),
+                                                                   nLockTime(tx.nLockTime), nExpiryHeight(tx.nExpiryHeight),
                                                                    valueBalance(tx.valueBalance), vShieldedSpend(tx.vShieldedSpend), vShieldedOutput(tx.vShieldedOutput),
                                                                    vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig),
                                                                    bindingSig(tx.bindingSig)
@@ -101,10 +102,10 @@ void CTransaction::UpdateHash() const
     *const_cast<uint256*>(&hash) = SerializeHash(*this);
 }
 
-CTransaction::CTransaction() : nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), fOverwintered(false), nVersionGroupId(0), nExpiryHeight(0), vin(), vout(), nLockTime(0), valueBalance(0), vShieldedSpend(), vShieldedOutput(), vjoinsplit(), joinSplitPubKey(), joinSplitSig(), bindingSig() {}
+CTransaction::CTransaction() : fOverwintered(false), nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), nVersionGroupId(0), vin(), vout(), nLockTime(0), nExpiryHeight(0), valueBalance(0), vShieldedSpend(), vShieldedOutput(), vjoinsplit(), joinSplitPubKey(), joinSplitSig(), bindingSig() {}
 
-CTransaction::CTransaction(const CMutableTransaction& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
-                                                            vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime),
+CTransaction::CTransaction(const CMutableTransaction& tx) : fOverwintered(tx.fOverwintered), nVersion(tx.nVersion), nVersionGroupId(tx.nVersionGroupId),
+                                                            vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime), nExpiryHeight(tx.nExpiryHeight),
                                                             valueBalance(tx.valueBalance), vShieldedSpend(tx.vShieldedSpend), vShieldedOutput(tx.vShieldedOutput),
                                                             vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig),
                                                             bindingSig(tx.bindingSig)
@@ -116,8 +117,8 @@ CTransaction::CTransaction(const CMutableTransaction& tx) : nVersion(tx.nVersion
 // For developer testing only.
 CTransaction::CTransaction(
     const CMutableTransaction& tx,
-    bool evilDeveloperFlag) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
-                              vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime),
+    bool evilDeveloperFlag) : fOverwintered(tx.fOverwintered), nVersion(tx.nVersion), nVersionGroupId(tx.nVersionGroupId),
+                              vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime), nExpiryHeight(tx.nExpiryHeight),
                               valueBalance(tx.valueBalance), vShieldedSpend(tx.vShieldedSpend), vShieldedOutput(tx.vShieldedOutput),
                               vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig),
                               bindingSig(tx.bindingSig)
@@ -125,7 +126,7 @@ CTransaction::CTransaction(
     assert(evilDeveloperFlag);
 }
 
-CTransaction::CTransaction(CMutableTransaction&& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId),
+CTransaction::CTransaction(CMutableTransaction&& tx) : fOverwintered(tx.fOverwintered), nVersion(tx.nVersion), nVersionGroupId(tx.nVersionGroupId),
                                                        vin(std::move(tx.vin)), vout(std::move(tx.vout)), nLockTime(tx.nLockTime), nExpiryHeight(tx.nExpiryHeight),
                                                        valueBalance(tx.valueBalance),
                                                        vShieldedSpend(std::move(tx.vShieldedSpend)), vShieldedOutput(std::move(tx.vShieldedOutput)),

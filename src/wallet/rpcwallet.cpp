@@ -371,7 +371,7 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
     KeyIO keyIO(Params());
     // Find all addresses that have the given account
     UniValue ret(UniValue::VARR);
-    for (const std::pair<CTxDestination, CAddressBookData>& item : pwalletMain->mapAddressBook) {
+    for (const std::pair<const CTxDestination, CAddressBookData>& item : pwalletMain->mapAddressBook) {
         const CTxDestination& dest = item.first;
         const std::string& strName = item.second.name;
         if (strName == strAccount) {
@@ -1371,7 +1371,7 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
 
     // Tally
     std::map<CTxDestination, tallyitem> mapTally;
-    for (const std::pair<uint256, CWalletTx>& pairWtx : pwalletMain->mapWallet) {
+    for (const std::pair<const uint256, CWalletTx>& pairWtx : pwalletMain->mapWallet) {
         const CWalletTx& wtx = pairWtx.second;
 
         if (wtx.IsCoinBase() || !CheckFinalTx(wtx))
@@ -1403,7 +1403,7 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
     UniValue ret(UniValue::VARR);
     std::map<std::string, tallyitem> mapAccountTally;
     KeyIO keyIO(Params());
-    for (const std::pair<CTxDestination, CAddressBookData>& item : pwalletMain->mapAddressBook) {
+    for (const std::pair<const CTxDestination, CAddressBookData>& item : pwalletMain->mapAddressBook) {
         const CTxDestination& dest = item.first;
         const std::string& strAccount = item.second.name;
         std::map<CTxDestination, tallyitem>::iterator it = mapTally.find(dest);
@@ -3107,7 +3107,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
     CAmount vpub_old(0);
     CAmount vpub_new(0);
 
-    int nextBlockHeight = chainActive.Height() + 1;
+    //int nextBlockHeight = chainActive.Height() + 1;	// -Wunused-variable
 
     if (params[3].get_real() != 0.0) {
         vpub_old = AmountFromValue(params[3]);
@@ -4796,7 +4796,7 @@ UniValue z_mergetoaddress(const UniValue& params, bool fHelp)
     // Keep track of addresses to spot duplicates
     std::set<std::string> setAddress;
 
-    bool isFromNonSprout = false;
+    bool isFromNonSprout = false;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
 
     KeyIO keyIO(Params());
     // Sources
@@ -4845,8 +4845,8 @@ UniValue z_mergetoaddress(const UniValue& params, bool fHelp)
     }
 
     const int nextBlockHeight = chainActive.Height() + 1;
-    const bool overwinterActive = Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_OVERWINTER);
-    const bool saplingActive = Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_SAPLING);
+    //const bool overwinterActive = Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_OVERWINTER);	// -Wunused-variable
+    const bool saplingActive =  Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_SAPLING);
 
     // Validate the destination address
     auto destaddress = params[1].get_str();
