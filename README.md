@@ -1,4 +1,4 @@
-# Gemlink 4.0.0
+# Gemlink 4.1.0
 
 [![](https://img.shields.io/github/v/release/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/release-date/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/latest/total)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/total)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/discord/398513312696107008)](https://discord.gg/GghXuUnYmU)
 
@@ -120,10 +120,16 @@ Ensure you have successfully installed all system package dependencies as descri
 
 ```
 $ git clone https://github.com/gemlink/gemlink.git
-$ cd Gemlink/
+$ cd gemlink/
 HOST=x86_64-w64-mingw32 ./zcutil/build.sh
 ```
+### Build ARM
 
+```
+$ git clone https://github.com/gemlink/gemlink.git
+$ cd gemlink/
+HOST=aarch64-linux-gnu LDFLAGS=-s ./zcutil/build.sh
+```
 ---
 
 ### Need Help?
