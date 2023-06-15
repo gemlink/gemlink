@@ -312,8 +312,11 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                     ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
 
                     UniValue mn(UniValue::VOBJ);
+                    if (lastHeight < chainActive.Height() + 1 - Params().GetmnLockBlocks()) {
+                        lastHeight = 0;
+                    }
                     mn.push_back(Pair("lastpayment", lastHeight));
-                    mn.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
+                    mn.push_back(Pair("unlocked", lastHeight > 0 ? lastHeight + Params().GetmnLockBlocks() : 0));
                     mn.push_back(Pair("address", keyIO.EncodeDestination(address1)));
                     mn.push_back(Pair("hash", v.tx->GetHash().ToString()));
                     mn.push_back(Pair("amount", Params().GetMasternodeCollateral(lastHeight)));
