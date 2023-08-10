@@ -116,20 +116,41 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     // get address balance
     nBalance = 0;
-
     // get all t address
     UniValue addressbalance(UniValue::VARR);
     UniValue addrlist(UniValue::VOBJ);
     KeyIO keyIO(Params());
     if (params.size() > 0 && (params[0].get_int() == 1 || params[0].get_int() == 0)) {
+        vector<COutput> vecOutputs;
+
+        {
+            LOCK2(cs_main, pwalletMain->cs_wallet);
+
+            pwalletMain->AvailableCoins(vecOutputs, false, NULL, true);
+        }
+
         BOOST_FOREACH (const PAIRTYPE(CTxDestination, CAddressBookData) & item, pwalletMain->mapAddressBook) {
             UniValue addr(UniValue::VOBJ);
             const CTxDestination& dest = item.first;
 
             isminetype mine = pwalletMain ? IsMine(*pwalletMain, dest) : ISMINE_NO;
 
-            //const string& strName = item.second.name;
-            nBalance = getBalanceTaddr(keyIO.EncodeDestination(dest), nMinDepth, false);
+            // const string& strName = item.second.name;
+            nBalance = 0;
+            for (const COutput& out : vecOutputs) {
+                if (out.nDepth < nMinDepth) {
+                    continue;
+                }
+
+                CScript scriptPubKey = GetScriptForDestination(dest);
+
+                if (out.tx->vout[out.i].scriptPubKey != scriptPubKey) {
+                    continue;
+                }
+
+                CAmount nValue = out.tx->vout[out.i].nValue;
+                nBalance += nValue;
+            }
 
             addr.push_back(Pair("amount", ValueFromAmount(nBalance)));
             addr.push_back(Pair("ismine", (mine & ISMINE_SPENDABLE) ? true : false));
@@ -147,9 +168,26 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                     const string& strName = keyIO.EncodeDestination(address);
                     if (addrlist.exists(strName))
                         continue;
+
                     isminetype mine = pwalletMain ? IsMine(*pwalletMain, address) : ISMINE_NO;
 
-                    nBalance = getBalanceTaddr(strName, nMinDepth, false);
+                    nBalance = 0;
+                    for (const COutput& out : vecOutputs) {
+                        if (out.nDepth < nMinDepth) {
+                            continue;
+                        }
+
+                        CTxDestination taddr = keyIO.DecodeDestination(strName);
+
+                        CScript scriptPubKey = GetScriptForDestination(taddr);
+
+                        if (out.tx->vout[out.i].scriptPubKey != scriptPubKey) {
+                            continue;
+                        }
+
+                        CAmount nValue = out.tx->vout[out.i].nValue;
+                        nBalance += nValue;
+                    }
 
                     addr.push_back(Pair("amount", ValueFromAmount(nBalance)));
                     addr.push_back(Pair("ismine", (mine & ISMINE_SPENDABLE) ? true : false));
@@ -207,7 +245,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     // get transactions
     string strAccount = "";
     int nCount = 200;
-    //int nFrom = 0;
+    // int nFrom = 0;
     isminefilter filter = ISMINE_SPENDABLE;
 
     UniValue trans(UniValue::VARR);
@@ -258,31 +296,36 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     returnObj.push_back(Pair("listtransactions", trans));
 
-    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
-        vector<COutput> vCoins;
-        pwalletMain->MasternodeCoins(vCoins);
+    if (params.size() > 0 && (params[0].get_int() == 1 || params[0].get_int() == 0)) {
+        if (masternodeSync.IsMasternodeListSynced() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+            vector<COutput> vCoins;
+            pwalletMain->MasternodeCoins(vCoins);
 
-        if (vCoins.size() > 0) {
-            UniValue mnList(UniValue::VARR);
-            for (COutput v : vCoins) {
-                int lastHeight = 0;
-                COutPoint prevout(v.tx->GetHash(), v.i);
-                CTxIn vin(prevout);
-                GetLastPaymentBlock(vin, lastHeight);
+            if (vCoins.size() > 0) {
+                UniValue mnList(UniValue::VARR);
+                for (COutput v : vCoins) {
+                    int lastHeight = 2167201;
+                    COutPoint prevout(v.tx->GetHash(), v.i);
+                    CTxIn vin(prevout);
+                    GetLastPaymentBlock(vin, lastHeight);
 
-                CTxDestination address1;
-                ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
+                    CTxDestination address1;
+                    ExtractDestination(v.tx->vout[v.i].scriptPubKey, address1);
 
-                UniValue mn(UniValue::VOBJ);
-                mn.push_back(Pair("lastpayment", lastHeight));
-                mn.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks()));
-                mn.push_back(Pair("address", keyIO.EncodeDestination(address1)));
-                mn.push_back(Pair("hash", v.tx->GetHash().ToString()));
-                mn.push_back(Pair("amount", Params().GetMasternodeCollateral(lastHeight)));
-                mn.push_back(Pair("idx", v.i));
-                mnList.push_back(mn);
+                    UniValue mn(UniValue::VOBJ);
+                    if (lastHeight < chainActive.Height() + 1 - Params().GetmnLockBlocks()) {
+                        lastHeight = 0;
+                    }
+                    mn.push_back(Pair("lastpayment", lastHeight));
+                    mn.push_back(Pair("unlocked", lastHeight > 0 ? lastHeight + Params().GetmnLockBlocks() : 0));
+                    mn.push_back(Pair("address", keyIO.EncodeDestination(address1)));
+                    mn.push_back(Pair("hash", v.tx->GetHash().ToString()));
+                    mn.push_back(Pair("amount", Params().GetMasternodeCollateral(lastHeight)));
+                    mn.push_back(Pair("idx", v.i));
+                    mnList.push_back(mn);
+                }
+                returnObj.push_back(Pair("lockedtxs", mnList));
             }
-            returnObj.push_back(Pair("lockedtxs", mnList));
         }
     }
     returnObj.push_back(Pair("isencrypted", pwalletMain->IsCrypted()));

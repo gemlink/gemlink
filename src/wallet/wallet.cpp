@@ -3988,9 +3988,10 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
                 bool found = false;
+                bool isMnCollateral = pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
                 if (coin_type == ONLY_10000) {
-                    found = pcoin->vout[i].nValue == Params().GetMasternodeCollateral(chainActive.Height() + 1 - nDepth) * COIN;
-                } else if (!pcoin->IsCoinBase() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+                    found = isMnCollateral;
+                } else if (isMnCollateral && !pcoin->IsCoinBase() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
                     int lastBlock = 0;
                     COutPoint prevout(pcoin->GetHash(), i);
                     CTxIn vin(prevout);
@@ -4929,7 +4930,7 @@ bool CWallet::DelAddressBook(const CTxDestination& address)
         if (fFileBacked) {
             // Delete destdata tuples associated with address
             std::string strAddress = keyIO.EncodeDestination(address);
-            for (const std::pair<const string, string> & item : mapAddressBook[address].destdata) {
+            for (const std::pair<const string, string>& item : mapAddressBook[address].destdata) {
                 CWalletDB(strWalletFile).EraseDestData(strAddress, item.first);
             }
         }
@@ -5213,7 +5214,7 @@ std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAcco
 {
     LOCK(cs_wallet);
     set<CTxDestination> result;
-    for (const std::pair<const CTxDestination, CAddressBookData> & item : mapAddressBook) {
+    for (const std::pair<const CTxDestination, CAddressBookData>& item : mapAddressBook) {
         const CTxDestination& address = item.first;
         const string& strName = item.second.name;
         if (strName == strAccount)

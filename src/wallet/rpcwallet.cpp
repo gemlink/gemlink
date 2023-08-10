@@ -3107,7 +3107,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
     CAmount vpub_old(0);
     CAmount vpub_new(0);
 
-    //int nextBlockHeight = chainActive.Height() + 1;	// -Wunused-variable
+    // int nextBlockHeight = chainActive.Height() + 1;	// -Wunused-variable
 
     if (params[3].get_real() != 0.0) {
         vpub_old = AmountFromValue(params[3]);
@@ -4796,7 +4796,7 @@ UniValue z_mergetoaddress(const UniValue& params, bool fHelp)
     // Keep track of addresses to spot duplicates
     std::set<std::string> setAddress;
 
-    bool isFromNonSprout = false;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
+    bool isFromNonSprout = false; // ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
 
     KeyIO keyIO(Params());
     // Sources
@@ -4845,8 +4845,8 @@ UniValue z_mergetoaddress(const UniValue& params, bool fHelp)
     }
 
     const int nextBlockHeight = chainActive.Height() + 1;
-    //const bool overwinterActive = Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_OVERWINTER);	// -Wunused-variable
-    const bool saplingActive =  Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_SAPLING);
+    // const bool overwinterActive = Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_OVERWINTER);	// -Wunused-variable
+    const bool saplingActive = Params().GetConsensus().NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_SAPLING);
 
     // Validate the destination address
     auto destaddress = params[1].get_str();
