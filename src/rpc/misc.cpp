@@ -293,6 +293,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         trans.push_backV(arrTmp);
     }
 
+
     returnObj.push_back(Pair("listtransactions", trans));
 
     if (params.size() > 0 && (params[0].get_int() == 1 || params[0].get_int() == 0)) {
