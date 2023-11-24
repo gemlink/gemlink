@@ -4732,7 +4732,7 @@ UniValue z_mergetotaddress(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
-    if (fHelp || params.size() < 1 || params.size() > 4)
+    if (fHelp || params.size() < 1 || params.size() > 5)
         throw runtime_error(
             "z_mergetotaddress \"toaddress\" ( fee ) ( include_coinbase )\n"
             "\nMerge multiple UTXOs and notes into a single UTXO or note.  Coinbase UTXOs are ignored; use `z_shieldcoinbase`"
@@ -4744,13 +4744,23 @@ UniValue z_mergetotaddress(const UniValue& params, bool fHelp)
             "\nconstrained by the consensus rule defining a maximum transaction size of " +
             strprintf("%d bytes before Sapling, and %d", MAX_TX_SIZE_BEFORE_SAPLING, MAX_TX_SIZE_AFTER_SAPLING) + "\nbytes once Sapling activates." + HelpRequiringPassphrase() + "\n"
                                                                                                                                                                                   "\nArguments:\n"
-                                                                                                                                                                                  "1. \"toaddress\"           (string, required) The taddr or zaddr to send the funds to.\n"
-                                                                                                                                                                                  "2. fee                   (numeric, optional, default=" +
+                                                                                                                                                                                  "1. fromaddresses         (array, required) A JSON array with addresses.\n"
+                                                                                                                                                                                  "                         The following special strings are accepted inside the array:\n"
+                                                                                                                                                                                  "                             - \"ANY_TADDR\":   Merge UTXOs from any taddrs belonging to the wallet.\n"
+                                                                                                                                                                                  "                         While it is possible to use a variety of different combinations of addresses and the above values,\n"
+                                                                                                                                                                                  "                         it is not possible to send funds from both sprout and sapling addresses simultaneously. If a special\n"
+                                                                                                                                                                                  "                         string is given, any given addresses of that type will be counted as duplicates and cause an error.\n"
+                                                                                                                                                                                  "    [\n"
+                                                                                                                                                                                  "      \"address\"          (string) Can be a taddr or a zaddr\n"
+                                                                                                                                                                                  "      ,...\n"
+                                                                                                                                                                                  "    ]\n"
+                                                                                                                                                                                  "2. \"toaddress\"           (string, required) The taddr or zaddr to send the funds to.\n"
+                                                                                                                                                                                  "3. fee                   (numeric, optional, default=" +
 
             strprintf("%s", FormatMoney(DEFAULT_FEE)) + ") The fee amount to attach to this transaction.\n"
-                                                        "3. transparent_limit     (numeric, optional, default=" +
+                                                        "4. transparent_limit     (numeric, optional, default=" +
             strprintf("%d", MERGE_TO_ADDRESS_DEFAULT_TRANSPARENT_LIMIT) + ") Limit on the maximum number of UTXOs to merge.  Set to 0 to use as many as will fit in the transaction.\n"
-                                                                          "4. include_coibase          (boolean) merge coinbase or not."
+                                                                          "5. include_coibase          (boolean) merge coinbase or not."
                                                                           "\nResult:\n"
                                                                           "{\n"
                                                                           "  \"remainingUTXOs\": xxx               (numeric) Number of UTXOs still available for merging.\n"
@@ -4764,7 +4774,7 @@ UniValue z_mergetotaddress(const UniValue& params, bool fHelp)
                                                                           "  \"opid\": xxx                         (string) An operationid to pass to z_getoperationstatus to get the result of the operation.\n"
                                                                           "}\n"
                                                                           "\nExamples:\n" +
-            HelpExampleCli("z_mergetotaddress", "t1address") + HelpExampleRpc("z_mergetoaddress", "\"t1address\""));
+            HelpExampleCli("z_mergetotaddress", "'[\"ANY_TADDR\", \"t1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\"]' t1address") + HelpExampleRpc("z_mergetotaddress", "[\"ANY_SAPLING\", \"t1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\"], \"t1address\""));
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -4776,20 +4786,48 @@ UniValue z_mergetotaddress(const UniValue& params, bool fHelp)
     std::set<CTxDestination> taddrs = {};
     std::set<libzcash::PaymentAddress> zaddrs = {};
 
-    UniValue addresses = params[0].get_array();
-    if (addresses.size() == 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, fromaddresses array is empty.");
-
     // Keep track of addresses to spot duplicates
     std::set<std::string> setAddress;
 
     bool isFromNonSprout = false; // ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
 
-    KeyIO keyIO(Params());
+    UniValue addresses = params[0].get_array();
+    if (addresses.size() == 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, fromaddresses array is empty.");
 
-    // use all utxo
-    useAnyUTXO = true;
-    isFromNonSprout = true;
+    KeyIO keyIO(Params());
+    // Sources
+    for (const UniValue& o : addresses.getValues()) {
+        if (!o.isStr())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected string");
+
+        std::string address = o.get_str();
+
+        if (address == "ANY_TADDR") {
+            useAnyUTXO = true;
+            isFromNonSprout = true;
+        } else {
+            CTxDestination taddr = keyIO.DecodeDestination(address);
+            if (IsValidDestination(taddr)) {
+                taddrs.insert(taddr);
+                isFromNonSprout = true;
+            } else {
+                auto zaddr = keyIO.DecodePaymentAddress(address);
+                if (IsValidPaymentAddress(zaddr)) {
+                    zaddrs.insert(zaddr);
+                    if (std::get_if<libzcash::SaplingPaymentAddress>(&zaddr) != nullptr) {
+                        isFromNonSprout = true;
+                    }
+                } else {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, string("Unknown address format: ") + address);
+                }
+            }
+        }
+
+        if (setAddress.count(address))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ") + address);
+        setAddress.insert(address);
+    }
 
 
     const int nextBlockHeight = chainActive.Height() + 1;
@@ -4868,7 +4906,7 @@ UniValue z_mergetotaddress(const UniValue& params, bool fHelp)
     if (useAnyUTXO || taddrs.size() > 0) {
         // Get available utxos
         vector<COutput> vecOutputs;
-        pwalletMain->AvailableCoins(vecOutputs, true, NULL, false, false);
+        pwalletMain->AvailableCoins(vecOutputs, true, NULL, false, getCoinbase);
 
         // Find unspent utxos and update estimated size
         for (const COutput& out : vecOutputs) {
