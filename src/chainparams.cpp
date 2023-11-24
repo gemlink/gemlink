@@ -115,9 +115,9 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_WAKANDA].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nActivationHeight = 1760000; // 2021, May 10th
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2167200;    // 2022, Feb 14
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2167200; // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
-        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2844000;   // 2023, Jun 06
+        consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2844000; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
@@ -191,11 +191,11 @@ public:
         fTestnetToBeDeprecatedFieldRPC = false;
         fHeadersFirstSyncingActive = false;
         checkpointData = (CCheckpointData){
-            boost::assign::map_list_of(0, consensus.hashGenesisBlock)(23000, uint256S("0x000000006b366d2c1649a6ebb4787ac2b39c422f451880bc922e3a6fbd723616"))(88000, uint256S("0x0000003ef01c0d1f954fdd738dac1b4f7191e6bee66ed8cb882d00d65fccd89b"))(770000, uint256S("0x0000033c44f81085a466f72d24104105caee912da72bdccc6d6f3c0d819ddc1a"))(874855, uint256S("0x000000cde6ea86e41c60ca32c06e7d1a0847bf533ecf0cd71b445ce81037f8cd"))(888888, uint256S("0x000003f40c40c23a58ca7d0255b994e7235e42a51bce730a68ef79e2157612da"))(1060000, uint256S("0x0000026612d48d0f47e9d39bfea738c2378e617067bf6b9d4c3031dff31c4e91"))(1720000, uint256S("0x000003dca02caa04cf1d1170e99e0ff045da3aa44fdd5f12954d060d9d0fdc2b"))(1861381, uint256S("0x00000ff129e63a7f89dc7fc5775020a5c2369a380bd2257dec7f32da9380e82c"))(2027480, uint256S("0x00001d39403ca8b6ee925d492654f9416254e0781532262fb1b323c85e970291"))(2130100, uint256S("00001edcb3102f2044d7a324a0909a674fb651ca1924ba7a9f1e1f154a5b4c56"))(2170000, uint256S("00000ef1ed277a6270b581902956db985348ead6dc8ecf944199851a8617bb2b")),
-            1645419453, // * UNIX timestamp of last checkpoint block
-            4541708,    // * total number of transactions between genesis and last checkpoint
+            boost::assign::map_list_of(0, consensus.hashGenesisBlock)(23000, uint256S("0x000000006b366d2c1649a6ebb4787ac2b39c422f451880bc922e3a6fbd723616"))(88000, uint256S("0x0000003ef01c0d1f954fdd738dac1b4f7191e6bee66ed8cb882d00d65fccd89b"))(770000, uint256S("0x0000033c44f81085a466f72d24104105caee912da72bdccc6d6f3c0d819ddc1a"))(874855, uint256S("0x000000cde6ea86e41c60ca32c06e7d1a0847bf533ecf0cd71b445ce81037f8cd"))(888888, uint256S("0x000003f40c40c23a58ca7d0255b994e7235e42a51bce730a68ef79e2157612da"))(1060000, uint256S("0x0000026612d48d0f47e9d39bfea738c2378e617067bf6b9d4c3031dff31c4e91"))(1720000, uint256S("0x000003dca02caa04cf1d1170e99e0ff045da3aa44fdd5f12954d060d9d0fdc2b"))(1861381, uint256S("0x00000ff129e63a7f89dc7fc5775020a5c2369a380bd2257dec7f32da9380e82c"))(2027480, uint256S("0x00001d39403ca8b6ee925d492654f9416254e0781532262fb1b323c85e970291"))(2130100, uint256S("00001edcb3102f2044d7a324a0909a674fb651ca1924ba7a9f1e1f154a5b4c56"))(2170000, uint256S("00000ef1ed277a6270b581902956db985348ead6dc8ecf944199851a8617bb2b"))(2936533, uint256S("00000f9d2e9171c60433e4568b0fcd6a89404524745368e8723fe6c543bb1d24")),
+            1691635205, // * UNIX timestamp of last checkpoint block
+            5571487,    // * total number of transactions between genesis and last checkpoint
                         //   (the tx=... number in the SetBestChain debug.log lines)
-            3013        // * estimated number of transactions per day after checkpoint
+            2732        // * estimated number of transactions per day after checkpoint
                         //   total number of tx / (checkpoint block height / (60 * 24))
         };
 
@@ -332,8 +332,8 @@ public:
         consensus.powLimitTop = uint256S("0000000000000000000000000000000000000000000000000000000000000001");
         consensus.nPowAveragingWindow = 17;
         assert(maxUint / UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
-        consensus.nPowMaxAdjustDown = 32;  // 32% adjustment down
-        consensus.nPowMaxAdjustUp = 16;    // 16% adjustment up
+        consensus.nPowMaxAdjustDown = 32; // 32% adjustment down
+        consensus.nPowMaxAdjustUp = 16;   // 16% adjustment up
         consensus.nPowTargetSpacing = 1 * 60;
         consensus.nTimeshiftPriv = 1 * 60; // 60 blocks in testnet
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = 13000;
@@ -482,8 +482,8 @@ public:
         consensus.powLimit = uint256S("0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
         consensus.nPowAveragingWindow = 17;
         assert(maxUint / UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
-        consensus.nPowMaxAdjustDown = 0;   // Turn off adjustment down
-        consensus.nPowMaxAdjustUp = 0;     // Turn off adjustment up
+        consensus.nPowMaxAdjustDown = 0; // Turn off adjustment down
+        consensus.nPowMaxAdjustUp = 0;   // Turn off adjustment up
         consensus.nPowTargetSpacing = 1 * 60;
         consensus.nTimeshiftPriv = 1 * 60; // 60 blocks
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = 0;
