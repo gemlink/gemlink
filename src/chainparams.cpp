@@ -471,17 +471,9 @@ public:
             "t2UNzUUx8mWBCRYPRezvA363EYXyEpHokyi"};
 
         uint256 txid;
-        txid.SetHex("39193c2bdecd18cdcdb350b1c243be7bbcfeb9985595e57facfdcc29c5daae4f");
+        txid.SetHex("66f0309234e17ec8cd679b595016ed9cd09877db4c4e5350f4ad75a50bc617ce");
         vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
 
-        txid.SetHex("55cb70d60d0848a05c564dce96f9a952e5ed3cd26cd918936504aa30d7ed4ec0");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
-
-        txid.SetHex("8334da808fe6dcfd023165317731c8d998c33107058c48df163ec4658260bea4");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
-
-        txid.SetHex("f70aa056a7fc472a96605f21aa890a428ee2327a32ea0a49abab5d67575c27ca");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
 
         nStartMasternodePayments = 1520121600; // 2018-03-04
