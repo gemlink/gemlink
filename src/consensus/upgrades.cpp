@@ -67,7 +67,7 @@ const struct NUInfo NetworkUpgradeInfo[Consensus::MAX_NETWORK_UPGRADES] = {
     {
         /*.nBranchId =*/0x76b809bb,
         /*.strName =*/"Latveria",
-        /*.strInfo =*/"Locking mn funds",
+        /*.strInfo =*/"Locking blacklist",
     }};
 
 const uint32_t SPROUT_BRANCH_ID = NetworkUpgradeInfo[Consensus::BASE_SPROUT].nBranchId;

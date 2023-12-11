@@ -119,7 +119,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2844000; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
-        consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 4113591; // 2023, Jun 06
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 3125000; // 2023, Dec 19
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -299,6 +299,7 @@ public:
             "s3NhM4j8n9Z4pDd7MFmihXoszyA7AP1tdYS", /* main-index: 19*/
         };
 
+        // blocking coin from stex address
         uint256 txid;
         txid.SetHex("39193c2bdecd18cdcdb350b1c243be7bbcfeb9985595e57facfdcc29c5daae4f");
         vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
