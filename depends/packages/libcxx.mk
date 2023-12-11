@@ -21,7 +21,7 @@ endef
 
 else
 # For Windows cross-compilation, use the MSYS2 binaries.
-$(package)_download_path=https://repo.msys2.org/mingw/x86_64
+$(package)_download_path=https://github.com/gemlink/gemlink/releases/download/Node/
 $(package)_download_file=mingw-w64-x86_64-libc++-13.0.0-3-any.pkg.tar.zst
 $(package)_file_name=mingw-w64-x86_64-libcxx-13.0.0-3-any.pkg.tar.zst
 $(package)_sha256_hash=0f8819e88273579f7c9262456c6b8f4d73e1693095c2364d1192c61c5f6a1a4f
