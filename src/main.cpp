@@ -2210,15 +2210,15 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
         }
     } else {
         if (nHeight > nMNPSBlock)
-            ret = 7 * COIN; // > 193200 - 35.0%
+            ret = 7 * COIN;  // > 193200 - 35.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 1))
-            ret = 8 * COIN; // > 236400 - 40.0%
+            ret = 8 * COIN;  // > 236400 - 40.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 2))
-            ret = 9 * COIN; // > 279600 - 45.0%
+            ret = 9 * COIN;  // > 279600 - 45.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 3))
             ret = 10 * COIN; // > 322800 - 50.0%
         if (nHeight > nMNPaymentChange)
-            ret = 9 * COIN; // 45%
+            ret = 9 * COIN;  // 45%
         if (nHeight >= nMNPaymentDIFA)
             ret = 925 * COIN / 100;
     }
@@ -4607,7 +4607,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     // and unrequested blocks.
     if (fAlreadyHave)
         return true;
-    if (!fRequested) { // If we didn't ask for it:
+    if (!fRequested) {   // If we didn't ask for it:
         if (pindex->nTx != 0)
             return true; // This is a previously-processed block that was pruned
         if (!fHasMoreWork)
@@ -5604,18 +5604,18 @@ void static CheckBlockIndex()
             assert(pindex->nStatus & BLOCK_HAVE_DATA);
         assert(((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS) == (pindex->nTx > 0)); // This is pruning-independent.
         // All parents having had data (at some point) is equivalent to all parents being VALID_TRANSACTIONS, which is equivalent to nChainTx being set.
-        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0)); // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
+        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0));           // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
         assert((pindexFirstNotTransactionsValid != NULL) == (pindex->nChainTx == 0));
         assert(pindex->nHeight == nHeight);                                               // nHeight must be consistent.
         assert(pindex->pprev == NULL || pindex->nChainWork >= pindex->pprev->nChainWork); // For every block except the genesis block, the chainwork must be larger than the parent's.
         assert(nHeight < 2 || (pindex->pskip && (pindex->pskip->nHeight < nHeight)));     // The pskip pointer must point back for all but the first 2 blocks.
         assert(pindexFirstNotTreeValid == NULL);                                          // All mapBlockIndex entries must at least be TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TREE)
-            assert(pindexFirstNotTreeValid == NULL); // TREE valid implies all parents are TREE valid
+            assert(pindexFirstNotTreeValid == NULL);                                      // TREE valid implies all parents are TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_CHAIN)
-            assert(pindexFirstNotChainValid == NULL); // CHAIN valid implies all parents are CHAIN valid
+            assert(pindexFirstNotChainValid == NULL);                                     // CHAIN valid implies all parents are CHAIN valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_SCRIPTS)
-            assert(pindexFirstNotScriptsValid == NULL); // SCRIPTS valid implies all parents are SCRIPTS valid
+            assert(pindexFirstNotScriptsValid == NULL);                                   // SCRIPTS valid implies all parents are SCRIPTS valid
         if (pindexFirstInvalid == NULL) {
             // Checks for not-invalid blocks.
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.

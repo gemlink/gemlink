@@ -115,7 +115,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_WAKANDA].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nActivationHeight = 1760000; // 2021, May 10th
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2167200; // 2022, Feb 14
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2167200;    // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2844000; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
@@ -350,8 +350,8 @@ public:
         consensus.powLimitTop = uint256S("0000000000000000000000000000000000000000000000000000000000000001");
         consensus.nPowAveragingWindow = 17;
         assert(maxUint / UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
-        consensus.nPowMaxAdjustDown = 32; // 32% adjustment down
-        consensus.nPowMaxAdjustUp = 16;   // 16% adjustment up
+        consensus.nPowMaxAdjustDown = 32;  // 32% adjustment down
+        consensus.nPowMaxAdjustUp = 16;    // 16% adjustment up
         consensus.nPowTargetSpacing = 1 * 60;
         consensus.nTimeshiftPriv = 1 * 60; // 60 blocks in testnet
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = 13000;
@@ -381,6 +381,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 81400; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
+
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -506,8 +507,8 @@ public:
         consensus.powLimit = uint256S("0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
         consensus.nPowAveragingWindow = 17;
         assert(maxUint / UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
-        consensus.nPowMaxAdjustDown = 0; // Turn off adjustment down
-        consensus.nPowMaxAdjustUp = 0;   // Turn off adjustment up
+        consensus.nPowMaxAdjustDown = 0;   // Turn off adjustment down
+        consensus.nPowMaxAdjustUp = 0;     // Turn off adjustment up
         consensus.nPowTargetSpacing = 1 * 60;
         consensus.nTimeshiftPriv = 1 * 60; // 60 blocks
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = 0;

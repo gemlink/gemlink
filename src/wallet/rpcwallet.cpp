@@ -5228,7 +5228,9 @@ UniValue z_mergetoaddress(const UniValue& params, bool fHelp)
     const size_t mempoolLimit = nUTXOLimit;
 
     unsigned int max_tx_size = saplingActive ? MAX_TX_SIZE_AFTER_SAPLING : MAX_TX_SIZE_BEFORE_SAPLING;
+
     size_t estimatedTxSize = 200; // tx overhead + wiggle room
+
     if (isToSproutZaddr) {
         estimatedTxSize += JOINSPLIT_SIZE(SAPLING_TX_VERSION); // We assume that sapling has activated
     } else if (isToSaplingZaddr) {
