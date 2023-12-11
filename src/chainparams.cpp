@@ -119,6 +119,9 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 2844000; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 4113591; // 2023, Jun 06
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
+
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("000000000000000000000000000000000000000000000000000000e45718e6cb");
@@ -296,6 +299,20 @@ public:
             "s3NhM4j8n9Z4pDd7MFmihXoszyA7AP1tdYS", /* main-index: 19*/
         };
 
+        uint256 txid;
+        txid.SetHex("39193c2bdecd18cdcdb350b1c243be7bbcfeb9985595e57facfdcc29c5daae4f");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("55cb70d60d0848a05c564dce96f9a952e5ed3cd26cd918936504aa30d7ed4ec0");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("8334da808fe6dcfd023165317731c8d998c33107058c48df163ec4658260bea4");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("f70aa056a7fc472a96605f21aa890a428ee2327a32ea0a49abab5d67575c27ca");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+
         nPoolMaxTransactions = 3;
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
 
@@ -361,6 +378,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight = 81220; // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 81400; // 2023, Jun 06
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -451,6 +470,18 @@ public:
         vDevelopersRewardAddress = {
             "t2UNzUUx8mWBCRYPRezvA363EYXyEpHokyi"};
 
+        uint256 txid;
+        txid.SetHex("39193c2bdecd18cdcdb350b1c243be7bbcfeb9985595e57facfdcc29c5daae4f");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("55cb70d60d0848a05c564dce96f9a952e5ed3cd26cd918936504aa30d7ed4ec0");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("8334da808fe6dcfd023165317731c8d998c33107058c48df163ec4658260bea4");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("f70aa056a7fc472a96605f21aa890a428ee2327a32ea0a49abab5d67575c27ca");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
 
         nStartMasternodePayments = 1520121600; // 2018-03-04
@@ -702,6 +733,16 @@ std::string CChainParams::GetTreasuryRewardAddressAtIndex(int i) const
     return vTreasuryRewardAddress[i];
 }
 
+COutPoint CChainParams::GetBlacklistTxAtIndex(int i) const
+{
+    assert(i >= 0 && i < vBlacklistTx.size());
+    return vBlacklistTx[i];
+}
+
+int CChainParams::GetBlacklistTxSize() const
+{
+    return vBlacklistTx.size();
+}
 
 // Block height must be >0
 // Index variable i ranges from 0 - (vFoundersRewardAddress.size()-1)

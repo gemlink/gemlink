@@ -63,6 +63,11 @@ const struct NUInfo NetworkUpgradeInfo[Consensus::MAX_NETWORK_UPGRADES] = {
         /*.nBranchId =*/0x76b809bb,
         /*.strName =*/"Xandar",
         /*.strInfo =*/"Locking mn funds",
+    },
+    {
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Latveria",
+        /*.strInfo =*/"Locking mn funds",
     }};
 
 const uint32_t SPROUT_BRANCH_ID = NetworkUpgradeInfo[Consensus::BASE_SPROUT].nBranchId;

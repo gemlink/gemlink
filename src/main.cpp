@@ -122,7 +122,7 @@ void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
  * Returns true if there are nRequired or more blocks of minVersion or above
  * in the last Consensus::Params::nMajorityWindow blocks, starting at pstart and going backwards.
  */
-//static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams);
+// static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams);
 static void CheckBlockIndex();
 
 /** Constant stuff for coinbase transactions we create: */
@@ -981,6 +981,7 @@ bool ContextualCheckTransaction(
     bool atlantisActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS);
     bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
     bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR);
+    bool latveriaActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_LATVERIA);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -1080,6 +1081,14 @@ bool ContextualCheckTransaction(
         if (!CheckMnTx(tx)) {
             return state.DoS(50, error("ContextualCheckTransaction(): tx locked failed"),
                              REJECT_INVALID, "bad-txns-lock");
+        }
+    }
+
+    if (latveriaActive) {
+        // if tx input has blacklist tx, reject
+        if (CheckBlacklistTx(tx)) {
+            return state.DoS(50, error("ContextualCheckTransaction(): tx blacklist input failed"),
+                             REJECT_INVALID, "bad-txns-blackist-input");
         }
     }
 
@@ -1584,7 +1593,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
             // do all inputs exist?
             // Note that this does not check for the presence of actual outputs (see the next check for that),
             // and only helps with filling in pfMissingInputs (to determine missing vs spent).
-            for (const CTxIn & txin : tx.vin) {
+            for (const CTxIn& txin : tx.vin) {
                 if (!view.HaveCoins(txin.prevout.hash)) {
                     if (pfMissingInputs)
                         *pfMissingInputs = true;
@@ -1741,8 +1750,8 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
         }
     }
 
-    //int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0		// -Wunused-variable, 	// Ky
-    // SyncWithWallets(tx, NULL, nHeight);
+    // int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0		// -Wunused-variable, 	// Ky
+    //  SyncWithWallets(tx, NULL, nHeight);
 
     return true;
 }
@@ -1876,7 +1885,7 @@ bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransact
             // do all inputs exist?
             // Note that this does not check for the presence of actual outputs (see the next check for that),
             // only helps filling in pfMissingInputs (to determine missing vs spent).
-            for (const CTxIn & txin : tx.vin) {
+            for (const CTxIn& txin : tx.vin) {
                 if (!view.HaveCoins(txin.prevout.hash)) {
                     if (pfMissingInputs)
                         *pfMissingInputs = true;
@@ -2201,15 +2210,15 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
         }
     } else {
         if (nHeight > nMNPSBlock)
-            ret = 7 * COIN;  // > 193200 - 35.0%
+            ret = 7 * COIN; // > 193200 - 35.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 1))
-            ret = 8 * COIN;  // > 236400 - 40.0%
+            ret = 8 * COIN; // > 236400 - 40.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 2))
-            ret = 9 * COIN;  // > 279600 - 45.0%
+            ret = 9 * COIN; // > 279600 - 45.0%
         if (nHeight > nMNPSBlock + (nMNPIPeriod * 3))
             ret = 10 * COIN; // > 322800 - 50.0%
         if (nHeight > nMNPaymentChange)
-            ret = 9 * COIN;  // 45%
+            ret = 9 * COIN; // 45%
         if (nHeight >= nMNPaymentDIFA)
             ret = 925 * COIN / 100;
     }
@@ -3882,7 +3891,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         boost::this_thread::interruption_point();
 
         bool fInitialDownload;
-        int nNewHeight;		// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
+        int nNewHeight; // ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
         {
             LOCK(cs_main);
             pindexMostWork = FindMostWorkChain();
@@ -4598,7 +4607,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     // and unrequested blocks.
     if (fAlreadyHave)
         return true;
-    if (!fRequested) {   // If we didn't ask for it:
+    if (!fRequested) { // If we didn't ask for it:
         if (pindex->nTx != 0)
             return true; // This is a previously-processed block that was pruned
         if (!fHasMoreWork)
@@ -5595,18 +5604,18 @@ void static CheckBlockIndex()
             assert(pindex->nStatus & BLOCK_HAVE_DATA);
         assert(((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS) == (pindex->nTx > 0)); // This is pruning-independent.
         // All parents having had data (at some point) is equivalent to all parents being VALID_TRANSACTIONS, which is equivalent to nChainTx being set.
-        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0));           // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
+        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0)); // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
         assert((pindexFirstNotTransactionsValid != NULL) == (pindex->nChainTx == 0));
         assert(pindex->nHeight == nHeight);                                               // nHeight must be consistent.
         assert(pindex->pprev == NULL || pindex->nChainWork >= pindex->pprev->nChainWork); // For every block except the genesis block, the chainwork must be larger than the parent's.
         assert(nHeight < 2 || (pindex->pskip && (pindex->pskip->nHeight < nHeight)));     // The pskip pointer must point back for all but the first 2 blocks.
         assert(pindexFirstNotTreeValid == NULL);                                          // All mapBlockIndex entries must at least be TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TREE)
-            assert(pindexFirstNotTreeValid == NULL);                                      // TREE valid implies all parents are TREE valid
+            assert(pindexFirstNotTreeValid == NULL); // TREE valid implies all parents are TREE valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_CHAIN)
-            assert(pindexFirstNotChainValid == NULL);                                     // CHAIN valid implies all parents are CHAIN valid
+            assert(pindexFirstNotChainValid == NULL); // CHAIN valid implies all parents are CHAIN valid
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_SCRIPTS)
-            assert(pindexFirstNotScriptsValid == NULL);                                   // SCRIPTS valid implies all parents are SCRIPTS valid
+            assert(pindexFirstNotScriptsValid == NULL); // SCRIPTS valid implies all parents are SCRIPTS valid
         if (pindexFirstInvalid == NULL) {
             // Checks for not-invalid blocks.
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.
@@ -6429,7 +6438,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         bool ignoreFees = false;
         CTxIn vin;
         vector<unsigned char> vchSig;
-        //int64_t sigTime;
+        // int64_t sigTime;
 
         vRecv >> tx;
 
@@ -7311,6 +7320,20 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
         }
     }
     return mtx;
+}
+
+bool CheckBlacklistTx(const CTransaction& tx)
+{
+    int blacklistSize = Params().GetBlacklistTxSize();
+    for (unsigned int i = 0; i < tx.vin.size(); i++) {
+        for (unsigned int j = 0; j < blacklistSize; j++) {
+            if (tx.vin[i].prevout == Params().GetBlacklistTxAtIndex(j)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
