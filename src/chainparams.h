@@ -106,6 +106,9 @@ public:
     CScript GetTreasuryRewardScriptAtHeight(int height) const;
     std::string GetTreasuryRewardAddressAtIndex(int i) const;
 
+    COutPoint GetBlacklistTxAtIndex(int i) const;
+    int GetBlacklistTxSize() const;
+
     std::string GetDevelopersRewardAddressAtHeight(int height) const;
     CScript GetDevelopersRewardScriptAtHeight(int height) const;
     std::string GetDevelopersRewardAddressAtIndex(int i) const;
@@ -165,6 +168,8 @@ protected:
     std::vector<std::string> vFoundersRewardAddress2;
     std::vector<std::string> vTreasuryRewardAddress;
     std::vector<std::string> vDevelopersRewardAddress;
+
+    std::vector<COutPoint> vBlacklistTx;
     int newTimeRule;
     int masternodeProtectionBlock;
     int masternodeCollateral;
