@@ -35,7 +35,7 @@ bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblo
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
-    //unsigned int nProofOfWorkLimitTop = UintToArith256(params.powLimitTop).GetCompact();
+    // unsigned int nProofOfWorkLimitTop = UintToArith256(params.powLimitTop).GetCompact();
 
     // Genesis block
     if (pindexLast == NULL)
@@ -85,7 +85,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
     // Difficulty algo
     int nHeight = pindexLast->nHeight + 1;
-    if (nHeight < params.vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight) {
+    if (nHeight < params.vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight || params.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_LATVERIA)) {
         return DigishieldCalculateNextWorkRequired(bnAvg, pindexLast->GetMedianTimePast(), pindexFirst->GetMedianTimePast(), params);
     } else {
         return Lwma3CalculateNextWorkRequired(pindexLast, params);
@@ -142,7 +142,7 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
 
     arith_uint256 sumTarget, previousDiff, nextTarget;
     int64_t thisTimestamp, previousTimestamp;
-    //int64_t t = 0, j = 0, solvetimeSum = 0;
+    // int64_t t = 0, j = 0, solvetimeSum = 0;
     int64_t t = 0, j = 0;
 
     const CBlockIndex* blockPreviousTimestamp = pindexLast->GetAncestor(height - N);
@@ -184,7 +184,7 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
     return nextTarget.GetCompact();
 }
 
-bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& params)
+bool CheckEquihashSolution(const CBlockHeader* pblock, const Consensus::Params& params)
 {
     unsigned int n, k;
     unsigned char personalization[PERS_SIZE] = {};
@@ -210,8 +210,7 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& 
         (unsigned char*)&ss[0], ss.size(),
         pblock->nNonce.begin(), pblock->nNonce.size(),
         pblock->nSolution.data(), pblock->nSolution.size(),
-        personalization, sizeof(personalization)
-        );
+        personalization, sizeof(personalization));
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
