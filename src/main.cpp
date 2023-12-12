@@ -1084,7 +1084,9 @@ bool ContextualCheckTransaction(
         }
     }
 
-    if (latveriaActive) {
+    // we can protect the chain imediatelly, there's no different in the nodes if they dont move the coin, but if we active here the upgraded node will be protected imediatelly
+    // if (latveriaActive) {
+    {
         // if tx input has blacklist tx, reject
         if (CheckBlacklistTx(tx)) {
             return state.DoS(50, error("ContextualCheckTransaction(): tx blacklist input failed"),
