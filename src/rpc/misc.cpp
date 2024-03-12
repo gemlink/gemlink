@@ -293,6 +293,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         trans.push_backV(arrTmp);
     }
 
+
     returnObj.push_back(Pair("listtransactions", trans));
 
     if (params.size() > 0 && (params[0].get_int() == 1 || params[0].get_int() == 0)) {
@@ -304,7 +305,6 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                 UniValue mnList(UniValue::VARR);
 
                 auto upgradeMorag = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG];
-
                 for (COutput v : vCoins) {
                     int lastHeight = 2167201;
                     COutPoint prevout(v.tx->GetHash(), v.i);
