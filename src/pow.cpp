@@ -32,6 +32,20 @@ bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblo
     return true;
 }
 
+bool CheckBlockTimestamp2(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+{
+    const CChainParams& chainParams = Params();
+    // 8 seconds
+    if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + 8) {
+        return false;
+    } else {
+        if (GetAdjustedTime() < pindexLast->GetBlockTime() + 8) {
+            return false;
+        }
+    }
+    return true;
+}
+
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
@@ -85,7 +99,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
     // Difficulty algo
     int nHeight = pindexLast->nHeight + 1;
-    if (nHeight < params.vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight || params.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_LATVERIA)) {
+    if (nHeight < params.vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight || (params.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_LATVERIA) && !params.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_KRAKOA))) {
         return DigishieldCalculateNextWorkRequired(bnAvg, pindexLast->GetMedianTimePast(), pindexFirst->GetMedianTimePast(), params);
     } else {
         return Lwma3CalculateNextWorkRequired(pindexLast, params);

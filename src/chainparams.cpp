@@ -121,6 +121,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 3125000; // 2023, Dec 19
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 3125000; // 2023, Dec 19
+        consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
@@ -313,6 +315,52 @@ public:
         txid.SetHex("f70aa056a7fc472a96605f21aa890a428ee2327a32ea0a49abab5d67575c27ca");
         vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
 
+        // 2
+        // s1ZGr3P3Qg6TrL2cz7dBU86HGcoAkm5qEtU
+        txid.SetHex("559e52339471724e2bcebe9c827bce116e07f4ae3bebe675ad2758e30cb09b15");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+
+        // s1ZqN3fVqG3FQ3juJzMJ71rZiqv764BmMrF
+        txid.SetHex("baa520a33d49977cae9bb35762f0238ad213ca4893ea218b55eff144b0eb3ab8");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+
+        txid.SetHex("baa520a33d49977cae9bb35762f0238ad213ca4893ea218b55eff144b0eb3ab8");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)2));
+
+        // s1MCr5wdCcaUpg12euJzgMNZR5bNZdR2Rj6
+        txid.SetHex("347915d48d4e30ad85605ad6a1cf9c36d5e1e8979e6ae0535c586ac704b69b32");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("b6939ecf1c6510f1bcb188e1a958339a5a24b4892bd25ea058efd00f3cd13953");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)4));
+
+        // s1cE9RVwSFPUuwQzDQiUGFrSDw3Mb8MndvL
+        txid.SetHex("e3f45d2087a9e1f1cbc0f23cdf22e2b84501f5052130a2e189e35ba94f08c878");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        // s1Mr5sYcv9D3jpJ3iFr8NwXMe52hR1dPs12
+        txid.SetHex("83e71a9709c27f01b7ec6a7e005a795df5fe37f9bee1bbc46c59f72e59e37538");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+
+        // s1QjM7iHe9vr1MxzhyYWdr6vK8HwwCJWx8j
+        txid.SetHex("ed17e27dd0daf261d02e77b6d1020291912c7de4dfa093c551e9f49fd8e49ae0");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)5));
+
+
+        // s1brDHZF4KSsdWCgAxrZ2mHZyU1XCtTxJ12
+        txid.SetHex("b6939ecf1c6510f1bcb188e1a958339a5a24b4892bd25ea058efd00f3cd13953");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        // s1Vtm24xzZ64BTPH2wC4Mhe6K8nsnT7QXPG
+        txid.SetHex("559e52339471724e2bcebe9c827bce116e07f4ae3bebe675ad2758e30cb09b15");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        txid.SetHex("a394330bff24f802251bdd68f4cd47b1f05a494c7037d9f0fb8cde535117ba63");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+
+        // s1RQcRxDdfF7GHmJR4xPZdAMs9hedRaYnXC
+        txid.SetHex("041931e512daf53ca0852e01baa4a3aae6d72783422adb921fb53e3ec19b395d");
+        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
 
         nPoolMaxTransactions = 3;
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
@@ -381,6 +429,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 81400; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 81600; // 2023, Jun 06
+        consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;
