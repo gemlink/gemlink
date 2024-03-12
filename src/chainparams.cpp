@@ -121,7 +121,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_XANDAR].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nActivationHeight = 3125000; // 2023, Dec 19
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
-        consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 3125000; // 2023, Dec 19
+        consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 3270500; // 2024, Mar 29
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
