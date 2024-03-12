@@ -36,4 +36,5 @@ arith_uint256 GetBlockProof(const CBlockIndex& block);
 int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params&);
 
 bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock);
+bool CheckBlockTimestamp2(const CBlockIndex* pindexLast, const CBlockHeader* pblock);
 #endif // BITCOIN_POW_H

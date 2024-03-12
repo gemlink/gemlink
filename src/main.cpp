@@ -4407,9 +4407,17 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 
     // check block timestamp
     if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_WAKANDA)) {
-        if (!CheckBlockTimestamp(pindexPrev, &block)) {
-            return state.Invalid(error("%s: new block is too fast", __func__),
-                                 REJECT_TIME_TOO_FAST, "block-too-fast");
+        if (!chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_KRAKOA)) {
+            if (!CheckBlockTimestamp(pindexPrev, &block)) {
+                return state.Invalid(error("%s: new block is too fast", __func__),
+                                     REJECT_TIME_TOO_FAST, "block-too-fast");
+            }
+
+        } else {
+            if (!CheckBlockTimestamp2(pindexPrev, &block)) {
+                return state.Invalid(error("%s: new block is too fast", __func__),
+                                     REJECT_TIME_TOO_FAST, "block-too-fast");
+            }
         }
     }
     return true;
