@@ -303,6 +303,8 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
             if (vCoins.size() > 0) {
                 UniValue mnList(UniValue::VARR);
+
+                auto upgradeMorag = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG];
                 for (COutput v : vCoins) {
                     int lastHeight = 2167201;
                     COutPoint prevout(v.tx->GetHash(), v.i);
@@ -320,7 +322,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                     mn.push_back(Pair("unlocked", lastHeight > 0 ? lastHeight + Params().GetmnLockBlocks() : 0));
                     mn.push_back(Pair("address", keyIO.EncodeDestination(address1)));
                     mn.push_back(Pair("hash", v.tx->GetHash().ToString()));
-                    mn.push_back(Pair("amount", Params().GetMasternodeCollateral(lastHeight)));
+                    mn.push_back(Pair("amount", Params().GetMasternodeCollateral(upgradeMorag.nActivationHeight)));
                     mn.push_back(Pair("idx", v.i));
                     mnList.push_back(mn);
                 }

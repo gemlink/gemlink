@@ -1,4 +1,4 @@
-# Gemlink 4.1.0
+# Gemlink 4.2.2
 
 [![](https://img.shields.io/github/v/release/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/release-date/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/latest/total)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/total)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/discord/398513312696107008)](https://discord.gg/GghXuUnYmU)
 
