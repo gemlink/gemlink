@@ -25,7 +25,8 @@ CMainSignals& GetMainSignals()
     return g_signals;
 }
 
-void RegisterValidationInterface(CValidationInterface* pwalletIn) {
+void RegisterValidationInterface(CValidationInterface* pwalletIn)
+{
     g_signals.UpdatedBlockTip.connect(boost::bind(&CValidationInterface::UpdatedBlockTip, pwalletIn, _1));
     g_signals.SyncTransaction.connect(boost::bind(&CValidationInterface::SyncTransaction, pwalletIn, _1, _2, _3));
     g_signals.EraseTransaction.connect(boost::bind(&CValidationInterface::EraseFromWallet, pwalletIn, _1));
@@ -38,7 +39,8 @@ void RegisterValidationInterface(CValidationInterface* pwalletIn) {
     g_signals.BlockFound.connect(boost::bind(&CValidationInterface::ResetRequestCount, pwalletIn, _1));
 }
 
-void UnregisterValidationInterface(CValidationInterface* pwalletIn) {
+void UnregisterValidationInterface(CValidationInterface* pwalletIn)
+{
     g_signals.BlockFound.disconnect(boost::bind(&CValidationInterface::ResetRequestCount, pwalletIn, _1));
     // g_signals.AddressForMining.disconnect(boost::bind(&CValidationInterface::GetAddressForMining, pwalletIn, _1));
     g_signals.BlockChecked.disconnect(boost::bind(&CValidationInterface::BlockChecked, pwalletIn, _1, _2));
@@ -51,7 +53,8 @@ void UnregisterValidationInterface(CValidationInterface* pwalletIn) {
     g_signals.UpdatedBlockTip.disconnect(boost::bind(&CValidationInterface::UpdatedBlockTip, pwalletIn, _1));
 }
 
-void UnregisterAllValidationInterfaces() {
+void UnregisterAllValidationInterfaces()
+{
     g_signals.BlockFound.disconnect_all_slots();
     // g_signals.AddressForMining.disconnect_all_slots();
     g_signals.BlockChecked.disconnect_all_slots();
@@ -64,23 +67,23 @@ void UnregisterAllValidationInterfaces() {
     g_signals.UpdatedBlockTip.disconnect_all_slots();
 }
 
-void SyncWithWallets(const CTransaction &tx, const CBlock *pblock, const int nHeight) {
+void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, const int nHeight)
+{
     g_signals.SyncTransaction(tx, pblock, nHeight);
 }
 
 struct CachedBlockData {
-    CBlockIndex *pindex;
+    CBlockIndex* pindex;
     std::pair<SproutMerkleTree, SaplingMerkleTree> oldTrees;
     std::list<CTransaction> txConflicted;
 
     CachedBlockData(
-        CBlockIndex *pindex,
+        CBlockIndex* pindex,
         std::pair<SproutMerkleTree, SaplingMerkleTree> oldTrees,
-        std::list<CTransaction> txConflicted):
-        pindex(pindex), oldTrees(oldTrees), txConflicted(txConflicted) {}
+        std::list<CTransaction> txConflicted) : pindex(pindex), oldTrees(oldTrees), txConflicted(txConflicted) {}
 };
 
-void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
+void ThreadNotifyWallets(CBlockIndex* pindexLastTip)
 {
     // If pindexLastTip == nullptr, the wallet is at genesis.
     // However, the genesis block is not loaded synchronously.
@@ -111,7 +114,7 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
 
         // The common ancestor between the last chain tip we notified and the
         // current chain tip.
-        const CBlockIndex *pindexFork;
+        const CBlockIndex* pindexFork;
         // The stack of blocks we will notify as having been connected.
         // Pushed in reverse, popped in order.
         std::vector<CachedBlockData> blockStack;
@@ -125,7 +128,7 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
 
             // Figure out the path from the last block we notified to the
             // current chain tip.
-            CBlockIndex *pindex = chainActive.Tip();
+            CBlockIndex* pindex = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexLastTip);
 
             // Fetch recently-conflicted transactions. These will include any
@@ -146,7 +149,7 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
                 // empty root.
                 SaplingMerkleTree oldSaplingTree;
                 if (chainParams.GetConsensus().NetworkUpgradeActive(
-                    pindex->pprev->nHeight, Consensus::UPGRADE_SAPLING)) {
+                        pindex->pprev->nHeight, Consensus::UPGRADE_SAPLING)) {
                     assert(pcoinsTip->GetSaplingAnchorAt(
                         pindex->pprev->hashFinalSaplingRoot, oldSaplingTree));
                 } else {
@@ -185,11 +188,11 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
 
             // Let wallets know transactions went from 1-confirmed to
             // 0-confirmed or conflicted:
-            for (const CTransaction &tx : block.vtx) {
+            for (const CTransaction& tx : block.vtx) {
                 SyncWithWallets(tx, NULL, pindexLastTip->nHeight);
             }
             // Update cached incremental witnesses
-            GetMainSignals().ChainTip(pindexLastTip, &block, false);
+            GetMainSignals().ChainTip(pindexLastTip, &block, std::nullopt);
 
             // On to the next block!
             pindexLastTip = pindexLastTip->pprev;
@@ -212,15 +215,15 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
 
             // Tell wallet about transactions that went from mempool
             // to conflicted:
-            for (const CTransaction &tx : blockData.txConflicted) {
+            for (const CTransaction& tx : blockData.txConflicted) {
                 SyncWithWallets(tx, NULL, blockData.pindex->nHeight + 1);
             }
             // ... and about transactions that got confirmed:
-            for (const CTransaction &tx : block.vtx) {
+            for (const CTransaction& tx : block.vtx) {
                 SyncWithWallets(tx, &block, blockData.pindex->nHeight);
             }
             // Update cached incremental witnesses
-            GetMainSignals().ChainTip(blockData.pindex, &block, true);
+            GetMainSignals().ChainTip(blockData.pindex, &block, blockData.oldTrees);
 
             // This block is done!
             pindexLastTip = blockData.pindex;

@@ -98,7 +98,7 @@ class CWalletTx;
 
 /** (client) version numbers for particular wallet features */
 enum WalletFeature {
-    FEATURE_BASE = 10500,        // the earliest version new wallets supports (only useful for getinfo's clientversion output)
+    FEATURE_BASE = 10500, // the earliest version new wallets supports (only useful for getinfo's clientversion output)
 
     FEATURE_WALLETCRYPT = 40000, // wallet encryption
     FEATURE_COMPRPUBKEY = 60000, // compressed public keys
@@ -313,11 +313,11 @@ public:
      * See the comment in that class for a full description.
      */
 
-    SaplingNoteData() : witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
-    //SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk {ivk}, witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
-    //SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk {ivk}, witnessHeight {-1}, nullifier(n), witnessRootValidated {false} { }
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : witnessHeight {-1}, ivk {ivk}, nullifier(), witnessRootValidated {false} { }
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : witnessHeight {-1}, ivk {ivk}, nullifier(n), witnessRootValidated {false} { }
+    SaplingNoteData() : witnessHeight{-1}, nullifier(), witnessRootValidated{false} {}
+    // SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk {ivk}, witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
+    // SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk {ivk}, witnessHeight {-1}, nullifier(n), witnessRootValidated {false} { }
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : witnessHeight{-1}, ivk{ivk}, nullifier(), witnessRootValidated{false} {}
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : witnessHeight{-1}, ivk{ivk}, nullifier(n), witnessRootValidated{false} {}
 
     std::list<SaplingWitness> witnesses;
     int witnessHeight;
@@ -1362,10 +1362,9 @@ public:
     CAmount GetImmatureWatchOnlyCredit(const bool& fUseCache = true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool& fUseCache = true) const;
 
-    void ChainTip(
-        const CBlockIndex* pindex,
-        const CBlock* pblock,
-        bool added);
+    void ChainTip(const CBlockIndex* pindex,
+                  const CBlock* pblock,
+                  std::optional<std::pair<SproutMerkleTree, SaplingMerkleTree>> added);
     void AddPendingSaplingMigrationTx(const CTransaction& tx);
     void RunSaplingMigration(int blockHeight);
     void RunSaplingConsolidation(int blockHeight);

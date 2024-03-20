@@ -567,9 +567,10 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
 
 void CWallet::ChainTip(const CBlockIndex* pindex,
                        const CBlock* pblock,
-                       bool added)
+                       std::optional<std::pair<SproutMerkleTree, SaplingMerkleTree>> added)
 {
     if (added) {
+        ChainTipAdded(pindex, pblock, added->first, added->second);
         // Prevent witness cache building as well as migration && consolidation transactions
         // from being created when node is syncing after launch,
         // and also when node wakes up from suspension/hibernation and incoming blocks are old.
@@ -590,6 +591,34 @@ void CWallet::ChainTip(const CBlockIndex* pindex,
     } else {
         DecrementNoteWitnesses(pindex);
         UpdateNullifierNoteMapForBlock(pblock);
+    }
+}
+
+void CWallet::ChainTipAdded(const CBlockIndex* pindex,
+                            const CBlock* pblock,
+                            SproutMerkleTree sproutTree,
+                            SaplingMerkleTree saplingTree)
+{
+    // SetBestChain() can be expensive for large wallets, so do only
+    // this sometimes; the wallet state will be brought up to date
+    // during rescanning on startup.
+    int64_t nNow = GetTimeMicros();
+    if (nLastSetChain == 0) {
+        // Don't flush during startup.
+        nLastSetChain = nNow;
+    }
+    if (++nSetChainUpdates >= WITNESS_WRITE_UPDATES ||
+        nLastSetChain + (int64_t)WITNESS_WRITE_INTERVAL * 1000000 < nNow) {
+        nLastSetChain = nNow;
+        nSetChainUpdates = 0;
+        CBlockLocator loc;
+        {
+            // The locator must be derived from the pindex used to increment
+            // the witnesses above; pindex can be behind chainActive.Tip().
+            LOCK(cs_main);
+            loc = chainActive.GetLocator(pindex);
+        }
+        SetBestChain(loc);
     }
 }
 
@@ -4540,7 +4569,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     if (recipient.fSubtractFeeFromAmount) {
                         txout.nValue -= nFeeRet / nSubtractFeeFromAmount; // Subtract fee equally from each selected recipient
 
-                        if (fFirst)                                       // first receiver pays the remainder not divisible by output count
+                        if (fFirst) // first receiver pays the remainder not divisible by output count
                         {
                             fFirst = false;
                             txout.nValue -= nFeeRet % nSubtractFeeFromAmount;
