@@ -322,7 +322,7 @@ bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int
     if (masternodePayments.IsTransactionValid(chainparams, txNew, nBlockHeight))
         return true;
 
-    LogPrintf("masternodepayments", "Invalid mn payment detected %s\n", txNew.ToString().c_str());
+    LogPrintf("Invalid mn payment detected %s\n", txNew.ToString().c_str());
 
     if (!Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG) && sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
         return false;
@@ -473,7 +473,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
 
     if (strCommand == "mnget") { // Masternode Payments Request Sync
         if (fLiteMode)
-            return;              // disable all Obfuscation/Masternode related functionality
+            return; // disable all Obfuscation/Masternode related functionality
 
         int nCountNeeded;
         vRecv >> nCountNeeded;
