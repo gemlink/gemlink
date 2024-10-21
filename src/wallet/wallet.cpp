@@ -4024,7 +4024,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                     int lastBlock = 0;
                     COutPoint prevout(pcoin->GetHash(), i);
                     CTxIn vin(prevout);
-                    if (GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    if (GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks(chainActive.Height()) > chainActive.Height()) {
                         continue;
                     } else {
                         found = true;
@@ -4105,7 +4105,7 @@ void CWallet::MasternodeCoins(vector<COutput>& vCoins) const
 
                 CTxIn vin(prevout);
                 if (
-                    GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks() > chainActive.Height()) {
+                    GetLastPaymentBlock(vin, lastBlock) && lastBlock + Params().GetmnLockBlocks(chainActive.Height()) > chainActive.Height()) {
                     found |= true;
                 }
 
