@@ -749,7 +749,7 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& ma
 bool ContextualCheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& view, bool fScriptChecks, unsigned int flags, bool cacheStore, PrecomputedTransactionData& txdata, const Consensus::Params& consensusParams, uint32_t consensusBranchId, std::vector<CScriptCheck>* pvChecks = NULL);
 
 bool CheckMnTx(const CTransaction& tx);
-bool CheckBlacklistTx(const CTransaction& tx);
+bool CheckBlacklistTx(const CTransaction& tx, int height);
 
 /** Check a transaction contextually against a set of consensus rules */
 bool ContextualCheckTransaction(const CTransaction& tx, CValidationState& state, const CChainParams& chainparams, int nHeight, int dosLevel, bool (*isInitBlockDownload)(const Consensus::Params&) = IsInitialBlockDownload);

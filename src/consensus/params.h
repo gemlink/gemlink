@@ -37,6 +37,7 @@ enum UpgradeIndex {
     UPGRADE_XANDAR,
     UPGRADE_LATVERIA,
     UPGRADE_KRAKOA,
+    UPGRADE_LATVERION,
     // NOTE: Also add new upgrades to NetworkUpgradeInfo in upgrades.cpp
     MAX_NETWORK_UPGRADES
 };

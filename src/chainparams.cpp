@@ -123,6 +123,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 3270500; // 2024, Mar 29
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nActivationHeight = 3640000; // 2024, Oct 18
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nProtocolVersion = 170012;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
@@ -362,6 +364,9 @@ public:
         txid.SetHex("041931e512daf53ca0852e01baa4a3aae6d72783422adb921fb53e3ec19b395d");
         vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
 
+        // whitelist
+        vWhitelistTx.push_back(COutPoint(txid, (uint32_t)1));
+
         nPoolMaxTransactions = 3;
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
 
@@ -431,6 +436,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 81600; // 2023, Jun 06
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nActivationHeight = 85600; // 2024, Oct 12
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nProtocolVersion = 170012;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -787,6 +794,20 @@ int CChainParams::GetBlacklistTxSize() const
     return vBlacklistTx.size();
 }
 
+bool CChainParams::IsBlocked(int height, COutPoint outpoint) const
+{
+    if (consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_LATVERION)) {
+        if (std::find(vWhitelistTx.begin(), vWhitelistTx.end(), outpoint) != vWhitelistTx.end()) {
+            return false;
+        }
+    }
+
+    if (std::find(vBlacklistTx.begin(), vBlacklistTx.end(), outpoint) != vBlacklistTx.end()) {
+        return true;
+    }
+    return false;
+}
+
 // Block height must be >0
 // Index variable i ranges from 0 - (vFoundersRewardAddress.size()-1)
 std::string CChainParams::GetDevelopersRewardAddressAtHeight(int nHeight) const
@@ -824,6 +845,15 @@ bool CChainParams::GetCoinbaseProtected(int height) const
         return true;
     } else {
         return false;
+    }
+}
+
+int CChainParams::GetmnLockBlocks(int height) const
+{
+    if (!consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_LATVERION)) {
+        return mnLockBlocks;
+    } else {
+        return mnLockBlocks / 2;
     }
 }
 

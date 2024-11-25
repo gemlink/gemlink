@@ -1088,7 +1088,7 @@ bool ContextualCheckTransaction(
     // if (latveriaActive) {
     {
         // if tx input has blacklist tx, reject
-        if (CheckBlacklistTx(tx)) {
+        if (CheckBlacklistTx(tx, nHeight)) {
             return state.DoS(50, error("ContextualCheckTransaction(): tx blacklist input failed"),
                              REJECT_INVALID, "bad-txns-blackist-input");
         }
@@ -2666,7 +2666,7 @@ bool CheckMnTx(
         for (const CTxIn vin : tx.vin) {
             int lastHeight = 0;
             if (GetLastPaymentBlock(vin, lastHeight)) {
-                if (lastHeight + Params().GetmnLockBlocks() > chainActive.Height()) {
+                if (lastHeight + Params().GetmnLockBlocks(chainActive.Height()) > chainActive.Height()) {
                     LogPrint("masternode", "try to create tx with active mn collateral or locking 1 - vin: %s\n", vin.ToString());
                     return false;
                 }
@@ -7332,14 +7332,12 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
     return mtx;
 }
 
-bool CheckBlacklistTx(const CTransaction& tx)
+bool CheckBlacklistTx(const CTransaction& tx, int height)
 {
     int blacklistSize = Params().GetBlacklistTxSize();
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
-        for (unsigned int j = 0; j < blacklistSize; j++) {
-            if (tx.vin[i].prevout == Params().GetBlacklistTxAtIndex(j)) {
-                return true;
-            }
+        if (Params().IsBlocked(height, tx.vin[i].prevout)) {
+            return true;
         }
     }
 
@@ -7377,9 +7375,9 @@ bool GetLastPaymentBlock(uint256 hash, CScript address, int& lastHeight)
             nHeight = coins->nHeight;
     }
 
-    int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks());
-    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
     int scanHeight = chainActive.Height();
+    int lastScanHeight = std::max(nHeight, chainActive.Height() - Params().GetmnLockBlocks(scanHeight));
+    lastScanHeight = std::max(lastScanHeight, Params().GetConsensus().vUpgrades[Consensus::UPGRADE_XANDAR].nActivationHeight);
 
 
     if (lastScanHeight > scanHeight ||
