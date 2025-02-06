@@ -106,7 +106,6 @@ public:
     CScript GetTreasuryRewardScriptAtHeight(int height) const;
     std::string GetTreasuryRewardAddressAtIndex(int i) const;
 
-    COutPoint GetBlacklistTxAtIndex(int i) const;
     int GetBlacklistTxSize() const;
     bool IsBlocked(int height, COutPoint outpoint) const;
 
@@ -130,12 +129,12 @@ public:
     }
 
     int GetmnLockBlocks(int height) const;
-    std::vector<COutPoint> GetBlackList() const
+    std::map<COutPoint, COutPoint> GetBlackList() const
     {
         return vBlacklistTx;
     }
 
-    std::vector<COutPoint> GetWhiteist() const
+    std::map<COutPoint, COutPoint> GetWhiteist() const
     {
         return vWhitelistTx;
     }
@@ -176,8 +175,8 @@ protected:
     std::vector<std::string> vTreasuryRewardAddress;
     std::vector<std::string> vDevelopersRewardAddress;
 
-    std::vector<COutPoint> vBlacklistTx;
-    std::vector<COutPoint> vWhitelistTx;
+    std::map<COutPoint, COutPoint> vBlacklistTx;
+    std::map<COutPoint, COutPoint> vWhitelistTx;
     int newTimeRule;
     int masternodeProtectionBlock;
     int masternodeCollateral;
