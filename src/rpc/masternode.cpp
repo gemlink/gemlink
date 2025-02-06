@@ -128,7 +128,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             // bool result = GetLastPaymentBlock(s.second.vin.prevout.hash, scriptPubKey, nHeight);
 
             // LogPrintf("Get masternode result %d", result);
-            int unlockHeight = chainActive.Height() > nHeight + Params().GetmnLockBlocks(nHeight) ? 0 : nHeight + Params().GetmnLockBlocks(nHeight);
+            int unlockHeight = chainActive.Height() > nHeight + Params().GetmnLockBlocks(chainActive.Height()) ? 0 : nHeight + Params().GetmnLockBlocks(chainActive.Height());
             obj.push_back(Pair("rank", (strStatus == "ENABLED" ? s.first : 0)));
             obj.push_back(Pair("network", strNetwork));
             obj.push_back(Pair("ip", strHost));
@@ -823,7 +823,7 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
         bool result = GetLastPaymentBlock(vin, lastHeight);
 
         if (result) {
-            if (lastHeight + Params().GetmnLockBlocks(lastHeight) > chainActive.Height()) {
+            if (lastHeight + Params().GetmnLockBlocks(chainActive.Height()) > chainActive.Height()) {
                 UniValue obj(UniValue::VOBJ);
 
                 obj.push_back(Pair("nHeight", lastHeight));
@@ -872,14 +872,14 @@ UniValue getmasternodepayments(const UniValue& params, bool fHelp)
                 result = GetLastPaymentBlock(vin, lastHeight);
 
                 if (result) {
-                    if (lastHeight + Params().GetmnLockBlocks(lastHeight) > chainActive.Height()) {
+                    if (lastHeight + Params().GetmnLockBlocks(chainActive.Height()) > chainActive.Height()) {
                         UniValue obj(UniValue::VOBJ);
 
                         CTxDestination address1;
                         ExtractDestination(scriptPubKey, address1);
 
                         obj.push_back(Pair("lastpayment", lastHeight));
-                        obj.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks(lastHeight)));
+                        obj.push_back(Pair("unlocked", lastHeight + Params().GetmnLockBlocks(chainActive.Height())));
                         obj.push_back(Pair("address", keyIO.EncodeDestination(address1)));
                         obj.push_back(Pair("hash", pcoin->GetHash().ToString()));
                         obj.push_back(Pair("idx", (uint64_t)j));
