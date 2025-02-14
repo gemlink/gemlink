@@ -123,7 +123,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_LATVERIA].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nActivationHeight = 3270500; // 2024, Mar 29
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
-        consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nActivationHeight = 3640000; // 2024, Oct 18
+        consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nActivationHeight = 3730000;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nProtocolVersion = 170012;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -306,66 +306,173 @@ public:
         // blocking coin from stex address
         uint256 txid;
         txid.SetHex("39193c2bdecd18cdcdb350b1c243be7bbcfeb9985595e57facfdcc29c5daae4f");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         txid.SetHex("55cb70d60d0848a05c564dce96f9a952e5ed3cd26cd918936504aa30d7ed4ec0");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         txid.SetHex("8334da808fe6dcfd023165317731c8d998c33107058c48df163ec4658260bea4");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         txid.SetHex("f70aa056a7fc472a96605f21aa890a428ee2327a32ea0a49abab5d67575c27ca");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         // 2
         // s1ZGr3P3Qg6TrL2cz7dBU86HGcoAkm5qEtU
         txid.SetHex("559e52339471724e2bcebe9c827bce116e07f4ae3bebe675ad2758e30cb09b15");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+        vBlacklistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
 
         // s1ZqN3fVqG3FQ3juJzMJ71rZiqv764BmMrF
         txid.SetHex("baa520a33d49977cae9bb35762f0238ad213ca4893ea218b55eff144b0eb3ab8");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+        vBlacklistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
 
         txid.SetHex("baa520a33d49977cae9bb35762f0238ad213ca4893ea218b55eff144b0eb3ab8");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)2));
+        vBlacklistTx[COutPoint(txid, (uint32_t)2)] = (COutPoint(txid, (uint32_t)2));
 
         // s1MCr5wdCcaUpg12euJzgMNZR5bNZdR2Rj6
         txid.SetHex("347915d48d4e30ad85605ad6a1cf9c36d5e1e8979e6ae0535c586ac704b69b32");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         txid.SetHex("b6939ecf1c6510f1bcb188e1a958339a5a24b4892bd25ea058efd00f3cd13953");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)4));
+        vBlacklistTx[COutPoint(txid, (uint32_t)4)] = (COutPoint(txid, (uint32_t)4));
 
         // s1cE9RVwSFPUuwQzDQiUGFrSDw3Mb8MndvL
         txid.SetHex("e3f45d2087a9e1f1cbc0f23cdf22e2b84501f5052130a2e189e35ba94f08c878");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         // s1Mr5sYcv9D3jpJ3iFr8NwXMe52hR1dPs12
         txid.SetHex("83e71a9709c27f01b7ec6a7e005a795df5fe37f9bee1bbc46c59f72e59e37538");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+        vBlacklistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
 
         // s1QjM7iHe9vr1MxzhyYWdr6vK8HwwCJWx8j
         txid.SetHex("ed17e27dd0daf261d02e77b6d1020291912c7de4dfa093c551e9f49fd8e49ae0");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)5));
+        vBlacklistTx[COutPoint(txid, (uint32_t)5)] = (COutPoint(txid, (uint32_t)5));
 
 
         // s1brDHZF4KSsdWCgAxrZ2mHZyU1XCtTxJ12
         txid.SetHex("b6939ecf1c6510f1bcb188e1a958339a5a24b4892bd25ea058efd00f3cd13953");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         // s1Vtm24xzZ64BTPH2wC4Mhe6K8nsnT7QXPG
         txid.SetHex("559e52339471724e2bcebe9c827bce116e07f4ae3bebe675ad2758e30cb09b15");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         txid.SetHex("a394330bff24f802251bdd68f4cd47b1f05a494c7037d9f0fb8cde535117ba63");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         // s1RQcRxDdfF7GHmJR4xPZdAMs9hedRaYnXC
         txid.SetHex("041931e512daf53ca0852e01baa4a3aae6d72783422adb921fb53e3ec19b395d");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)1));
+        vBlacklistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
+
+        // s1Nub5iz5D3mDwP5UUXA5CtpK5EYomb2KQc
+        txid.SetHex("a969a4a6caab6f45109dba60884ef0e964b1d2598f134995257e0fac7ab0c219");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("ddaa81c8c2a8e271d8a46c94e9d4e7c30ec5a9c5d403ca2386234c5907e12b1e");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("de7de8c00467db02a377fbd6f40c4a8f49f9d567ec5f41da7463e63fde8238ba");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("5cd8d343f8ca8d813440143d96a4166d094fb038879f6febfb51d85d9109e33e");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("761f83b1d94828709b4d64a177fb9e501504f7f7f0e7495a85be1abd40424c05");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("6ec563df38c09cc44418a696858ff237ca637fd7e8175a8c484ff0d180091b49");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("5e6952a168d5e535ef14fdc9b0eeed9cec4c151f0f2c7fc893e73b0b35cd2610");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("61a2ce385139a69ab0b96f0e292df74b6fa8e89d67dd01dde0bcadcfca4ca969");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("b95593e09bfb0c96bd17f661557f8ab3095691c3d60f2de747b62f83401a9508");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("2feb77b6cc8252e919b5f727268c3f17afa4466b6a2b9bdc5f573c5c77cb2a0c");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("7301141dd2efb0bbe90f11c8b9dd2eb721c6e2f4f72667a3e1e76ae6c9a4db33");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("c414a1c773b34a13933d0d229b1329210483eb10e75a90a4036bdbcf3e46f5e9");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("9b3ce0046d4eccc9499f25f05fc9b96565405c1ddb3c4040665e70d29e039bed");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("25a3bc447d3401ee4326c9fa58745dee31d06af51ac520ca6df912f9c434c75a");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("4f141c3b0b58ca9d0095d7f985ea7139a833bc39a39b5784f9d0316b0d25c5f5");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("4f08225de887034fff156ffadd34d867fa06d6e9a194f444d5c55a96635702ed");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("99d4067517fdeb1a57122cd9fc42fcb67b59f1dbe3d59fe2269b7cd976344365");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("c43fa84a6f0cbca1c522f22e525d628fb059040bc567d294e8c80ae25641d2ae");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("8c42fb889aee0a521b9cd6f1a36e2a9943f6868efb3f4de6036711c8dc3aecfb");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("732bfb5976d3ed46af8cb070f685fcd0eb56f1c192562ae5c4b0fec77ecdbaa8");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("4f3d6de180c6cec2b25b5278891f252a3d109a8dd33d728170f8cc22bb5540ab");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("9145155cea99f602fe3d1b2628e1bfe202a6b94d694e4f90d218730343c3479e");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("bf13ce8c4bf8164806c315c0c732b67ba06e3a1217ec1458f4ff9cd55d1318e6");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("f06c3c1fa50f1905f93931f9f65074ed997e8c12e9e171c1e9d477223c474feb");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("35d2919fc71dfeec36229d399bb159a28b60eff61718ba6dfc4d428199d37efc");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("6b7bbfddd7730727ed26300671bb9878e44f5a536e0cda2fb6f81227d5faf00b");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("9de0cc74bf33b124ee89fabf974997c10bc1f0e56484b04fc32c57bad80536eb");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("7a83274d66adec207b9620417537e99f3b3666b4a39633fef4dabe0af454be28");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("304d3904c3a0ca1aeaa529d71ba2803937b6ad6e53fce67a13e52f427e417100");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("90d034108e029cde33c409a23fce54708c12949c42731a9b98fbc538f4d42ec7");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("98ecfe8a50bf874cdc105dcad35b8bf6927f3a480a34edf8fb495061054878a8");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("026d36af1b344ba40fcda42fe34da23124a865baa652bb4174d12d2cfcdf9ae0");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("3b85a18e237d7f29a8c0d35e054ec54b58224786a5b6b1e7d9e02d880cf83a6f");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("54b955aeb0c74fad70b9ba24f3482d44defd5fa249de82a0f46dbaf8af167413");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("dabac2423d59d073877e0a7afe53fdcf77a21cc320d23634671a1810058c779b");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("4bb0b04f57216ac1468816a7f126bf943b805488726647860b5ebc4e1b0a2004");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("80d062910e91def18fd55d1c32ed048de645bcdad6c5afff9cf828d8fd7083d3");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("1b43010cef82df7bb52796b30516763f731dfe51ee68b0b9cf107ce70698bd21");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("09adf773e47a2d75df7bd7a4b5f84f7f796b5ee77dd11930796f358c19614f57");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("0dcf64c5da21f85ab1f0b7cad3cce2b0f4036cff486c2a40af21473c4056f73b");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("4a2a5561cabc1aaf7fbec3815662bb8963200161577884088e8dc917099a2365");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("cc5e9ecfba4b282cf0694f4c4a74f804704e07b1e1348d4c65b6bd6c8ec69c82");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("72f7700a86ca3773447dec8c4b6f146c0ce095a4fd4f9c21795fb00df53167d1");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("511c55b3e2ab97e3bb8c37d583ce8abd60dbad065597162fa10fa51df46d183e");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("57b08d06749f2cc70ab94573328e435be2f3fedc5b79ec54528cdb20c4e03ed4");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("6946af5b6dba8b2076ef673f231c3fb47da4c143ec8079bc85d4b513ba7c34ca");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("cc7f7887e7ffe616e3169fae80fb7ef45bb38ef43291f62fef85d51c1e0a7efb");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("3bd708b9ae9bce0fad91ef908acf14d828c7a05e88828b5a94ee7725c6838e8b");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("1ca05f8641d56f934bcb9a8dd9e22b3517d982f8213c9ce9d05be86fad3bba33");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+
+        // s1bk6mzGJUKf1CCpuAsAyULnqKqAM64NWAG
+        txid.SetHex("7e367819b149666ef29462202503c9ab858c556434909ed572c36893204bc888");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
+        txid.SetHex("4aadd106938e774832d0cbca86e4d5f4e9d67030fb894a427ea001d068e7b669");
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)1));
 
         // whitelist
-        vWhitelistTx.push_back(COutPoint(txid, (uint32_t)1));
+        txid.SetHex("041931e512daf53ca0852e01baa4a3aae6d72783422adb921fb53e3ec19b395d");
+        vWhitelistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
 
         nPoolMaxTransactions = 3;
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
@@ -530,7 +637,7 @@ public:
 
         uint256 txid;
         txid.SetHex("66f0309234e17ec8cd679b595016ed9cd09877db4c4e5350f4ad75a50bc617ce");
-        vBlacklistTx.push_back(COutPoint(txid, (uint32_t)0));
+        vBlacklistTx[COutPoint(txid, (uint32_t)0)] = (COutPoint(txid, (uint32_t)0));
 
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
 
@@ -783,12 +890,6 @@ std::string CChainParams::GetTreasuryRewardAddressAtIndex(int i) const
     return vTreasuryRewardAddress[i];
 }
 
-COutPoint CChainParams::GetBlacklistTxAtIndex(int i) const
-{
-    assert(i >= 0 && i < vBlacklistTx.size());
-    return vBlacklistTx[i];
-}
-
 int CChainParams::GetBlacklistTxSize() const
 {
     return vBlacklistTx.size();
@@ -797,12 +898,12 @@ int CChainParams::GetBlacklistTxSize() const
 bool CChainParams::IsBlocked(int height, COutPoint outpoint) const
 {
     if (consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_LATVERION)) {
-        if (std::find(vWhitelistTx.begin(), vWhitelistTx.end(), outpoint) != vWhitelistTx.end()) {
+        if (vWhitelistTx.find(outpoint) != vWhitelistTx.end()) {
             return false;
         }
     }
 
-    if (std::find(vBlacklistTx.begin(), vBlacklistTx.end(), outpoint) != vBlacklistTx.end()) {
+    if (vBlacklistTx.find(outpoint) != vBlacklistTx.end()) {
         return true;
     }
     return false;
