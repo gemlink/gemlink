@@ -9,9 +9,9 @@ $(package)_download_path=$(native_clang_download_path)
 $(package)_download_file_aarch64_linux=clang+llvm-$($(package)_version)-aarch64-linux-gnu.tar.xz
 $(package)_file_name_aarch64_linux=clang-llvm-$($(package)_version)-aarch64-linux-gnu.tar.xz
 $(package)_sha256_hash_aarch64_linux=968d65d2593850ee9b37fcda074fb7641529bd45d2f976af6c8197de3c22612f
-$(package)_download_file_linux=clang+llvm-$($(package)_version)-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-$(package)_file_name_linux=clang-llvm-$($(package)_version)-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-$(package)_sha256_hash_linux=76d0bf002ede7a893f69d9ad2c4e101d15a8f4186fbfe24e74856c8449acd7c1
+$(package)_download_file_linux=clang+llvm-$($(package)_version)-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+$(package)_file_name_linux=clang-llvm-$($(package)_version)-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+$(package)_sha256_hash_linux=2c2fb857af97f41a5032e9ecadf7f78d3eff389a5cd3c9ec620d24f134ceb3c8
 
 define $(package)_stage_cmds
   mkdir -p $($(package)_staging_prefix_dir)/lib && \
