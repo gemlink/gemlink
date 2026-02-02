@@ -3742,29 +3742,56 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     AssertLockHeld(cs_main);
     const CBlockIndex* pindexOldTip = chainActive.Tip();
     const CBlockIndex* pindexFork = chainActive.FindFork(pindexMostWork);
+    auto reorgLength = pindexFork ? (chainActive.Height() - pindexFork->nHeight) : 0;
 
     // - On ChainDB initialization, pindexOldTip will be null, so there are no removable blocks.
     // - If pindexMostWork is in a chain that doesn't have the same genesis block as our chain,
     //   then pindexFork will be null, and we would need to remove the entire chain including
     //   our genesis block. In practice this (probably) won't happen because of checks elsewhere.
-    auto reorgLength = pindexOldTip ? pindexOldTip->nHeight - (pindexFork ? pindexFork->nHeight : -1) : 0;
-    static_assert(MAX_REORG_LENGTH > 0, "We must be able to reorg some distance");
-    if (reorgLength > MAX_REORG_LENGTH && masternodeSync.IsSynced()) {
-        auto msg = strprintf(
-                       "A block chain reorganization has been detected that would roll back %d blocks! "
-                       "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
-                       reorgLength, MAX_REORG_LENGTH) +
-                   "\n\n" +
-                   "Reorganization details :\n" +
-                   "- " + strprintf("Current tip: %s, height %d, work %s", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
-                   "- " + strprintf("New tip:     %s, height %d, work %s", pindexMostWork->phashBlock->GetHex(), pindexMostWork->nHeight, pindexMostWork->nChainWork.GetHex()) + "\n" +
-                   "- " + strprintf("Fork point:  %s, height %d", pindexFork->phashBlock->GetHex(), pindexFork->nHeight) + "\n\n" +
-                   "Please help, human!";
-        LogPrintf("*** %s\n", msg);
-        uiInterface.ThreadSafeMessageBox(msg, "", CClientUIInterface::MSG_ERROR);
-        StartShutdown();
-        return false;
+    // auto reorgLength = pindexOldTip ? pindexOldTip->nHeight - (pindexFork ? pindexFork->nHeight : -1) : 0;
+    // static_assert(MAX_REORG_LENGTH > 0, "We must be able to reorg some distance");
+    // if (reorgLength > MAX_REORG_LENGTH && masternodeSync.IsSynced()) {
+    //     auto msg = strprintf(
+    //                    "A block chain reorganization has been detected that would roll back %d blocks! "
+    //                    "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
+    //                    reorgLength, MAX_REORG_LENGTH) +
+    //                "\n\n" +
+    //                "Reorganization details :\n" +
+    //                "- " + strprintf("Current tip: %s, height %d, work %s", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
+    //                "- " + strprintf("New tip:     %s, height %d, work %s", pindexMostWork->phashBlock->GetHex(), pindexMostWork->nHeight, pindexMostWork->nChainWork.GetHex()) + "\n" +
+    //                "- " + strprintf("Fork point:  %s, height %d", pindexFork->phashBlock->GetHex(), pindexFork->nHeight) + "\n\n" +
+    //                "Please help, human!";
+    //     LogPrintf("*** %s\n", msg);
+    //     uiInterface.ThreadSafeMessageBox(msg, "", CClientUIInterface::MSG_ERROR);
+    //     StartShutdown();
+    //     return false;
+    // }
+
+    const bool mnSynced =
+        (masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED);
+
+    // While MN is not synced (bootstrap / restart window), allow only tiny reorgs.
+    // This prevents "restart -> chase heavier fork -> later MN rejects -> chaos".
+    const int BOOTSTRAP_REORG_LIMIT = 2;
+
+    // When MN is synced, enforce your existing MN-protection limit (usually 20).
+    const int MN_REORG_LIMIT = chainparams.GetReorgNumber(true);
+
+    if (!mnSynced && reorgLength > BOOTSTRAP_REORG_LIMIT) {
+        LogPrintf("mnprotection: refusing reorg depth=%d (MN not synced)\n", reorgLength);
+
+        // Refuse this candidate chain without modifying UTXO/chainstate.
+        setBlockIndexCandidates.erase(const_cast<CBlockIndex*>(pindexMostWork));
+        return true;
     }
+
+    if (mnSynced && reorgLength > MN_REORG_LIMIT) {
+        LogPrintf("mnprotection: refusing reorg depth=%d (limit=%d)\n", reorgLength, MN_REORG_LIMIT);
+
+        setBlockIndexCandidates.erase(const_cast<CBlockIndex*>(pindexMostWork));
+        return true;
+    }
+
 
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
