@@ -42,7 +42,17 @@ $ sudo apt-get install \
  autoconf libtool ncurses-dev unzip git python3 python3-zmq \
  zlib1g-dev curl bsdmainutils automake libtinfo5
 ```
-
+on Ubuntu 24.04:
+```
+sudo apt-get install -y \
+  build-essential pkg-config libc6-dev m4 g++-multilib \
+  autoconf automake libtool \
+  libncurses-dev libtinfo6 \
+  unzip git \
+  python3 python3-zmq \
+  zlib1g-dev curl \
+  bsdextrautils
+```
 On Fedora-based systems:
 
 ```
