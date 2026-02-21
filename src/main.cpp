@@ -982,6 +982,7 @@ bool ContextualCheckTransaction(
     bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
     bool xandarActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XANDAR);
     bool latveriaActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_LATVERIA);
+    bool xavierActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_XAVIER);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -1077,7 +1078,7 @@ bool ContextualCheckTransaction(
                              REJECT_INVALID, "bad-txns-oversize");
     }
 
-    if (xandarActive) {
+    if (!xavierActive && xandarActive) {
         if (!CheckMnTx(tx)) {
             return state.DoS(50, error("ContextualCheckTransaction(): tx locked failed"),
                              REJECT_INVALID, "bad-txns-lock");
@@ -7373,6 +7374,9 @@ bool CheckBlacklistTx(const CTransaction& tx, int height)
 
 bool GetLastPaymentBlock(CTxIn vin, int& lastHeight, bool forceOffline)
 {
+    if (NetworkUpgradeActive(lastHeight, Params().GetConsensus(), Consensus::UPGRADE_XAVIER))
+        return false;
+
     if (IsInitialBlockDownload(Params().GetConsensus())) {
         return false;
     }

@@ -3899,7 +3899,7 @@ CAmount CWallet::GetLockedCoins() const
         }
 
         vector<COutput> vCoins;
-        if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        if (!NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XAVIER) && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
             MasternodeCoins(vCoins);
             for (COutput v : vCoins) {
                 nTotal += v.tx->vout[v.i].nValue;

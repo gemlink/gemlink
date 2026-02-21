@@ -125,6 +125,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nActivationHeight = 3730000;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_XAVIER].nActivationHeight = 4275000; // 2024, Mar 29
+        consensus.vUpgrades[Consensus::UPGRADE_XAVIER].nProtocolVersion = 170012;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
@@ -545,6 +547,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_KRAKOA].nProtocolVersion = 170012;
         consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nActivationHeight = 85600; // 2024, Oct 12
         consensus.vUpgrades[Consensus::UPGRADE_LATVERION].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_XAVIER].nActivationHeight = 89600; // 2024, Oct 12
+        consensus.vUpgrades[Consensus::UPGRADE_XAVIER].nProtocolVersion = 170012;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -951,6 +955,10 @@ bool CChainParams::GetCoinbaseProtected(int height) const
 
 int CChainParams::GetmnLockBlocks(int height) const
 {
+    if (consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_XAVIER)) {
+        return 0;
+    }
+
     if (!consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_LATVERION)) {
         return mnLockBlocks;
     } else {
