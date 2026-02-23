@@ -476,6 +476,12 @@ public:
         txid.SetHex("041931e512daf53ca0852e01baa4a3aae6d72783422adb921fb53e3ec19b395d");
         vWhitelistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
 
+        txid.SetHex("559e52339471724e2bcebe9c827bce116e07f4ae3bebe675ad2758e30cb09b15");
+        vWhitelistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)1));
+
+        txid.SetHex("559e52339471724e2bcebe9c827bce116e07f4ae3bebe675ad2758e30cb09b15");
+        vWhitelistTx[COutPoint(txid, (uint32_t)1)] = (COutPoint(txid, (uint32_t)0));
+
         nPoolMaxTransactions = 3;
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
 
