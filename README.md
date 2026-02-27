@@ -1,122 +1,209 @@
-# Gemlink 4.2.0
+# Gemlink 4.3.1
 
-[![](https://img.shields.io/github/v/release/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/release-date/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/latest/total)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/total)](https://github.com/gemlink/gemlink/releases) [![](https://img.shields.io/discord/398513312696107008)](https://discord.gg/GghXuUnYmU)
+[![Release](https://img.shields.io/github/v/release/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases)
+[![Release date](https://img.shields.io/github/release-date/gemlink/gemlink)](https://github.com/gemlink/gemlink/releases)
+[![Downloads (latest)](https://img.shields.io/github/downloads/gemlink/gemlink/latest/total)](https://github.com/gemlink/gemlink/releases)
+[![Downloads (total)](https://img.shields.io/github/downloads/gemlink/gemlink/total)](https://github.com/gemlink/gemlink/releases)
+[![Discord](https://img.shields.io/discord/398513312696107008)](https://discord.gg/GghXuUnYmU)
 
-![]()
+---
 
 ## What is Gemlink?
 
-Gemlink(http://gemlink.org/) is an implementation of the "Zerocash" protocol.
-Based on Bitcoin's code, it intends to offer a far higher standard of privacy
-through a sophisticated zero-knowledge proving scheme that preserves
-confidentiality of transaction metadata. Technical details are available
-in our [Protocol Specification](https://github.com/zcash/zips/raw/master/protocol/protocol.pdf).
+Gemlink (https://gemlink.org/) is an implementation of the **Zerocash** protocol.  
+Based on Bitcoin’s codebase, it aims to provide a significantly higher level of
+privacy through zero-knowledge proofs that preserve the confidentiality of
+transaction metadata.
 
-This software is the Gemlink client. It downloads and stores the entire history
-of Gemlink transactions; depending on the speed of your computer and network
-connection, the synchronization process could take a day or more once the
-blockchain has reached a significant size.
+Technical details of the cryptographic protocol can be found in the
+[Zerocash / Zcash Protocol Specification](https://github.com/zcash/zips/raw/master/protocol/protocol.pdf).
 
-## Security Warnings
+This repository contains the **Gemlink full node and wallet software**.
+Running a full node requires downloading and validating the entire Gemlink
+blockchain. Depending on hardware and network speed, initial synchronization
+may take a significant amount of time.
 
-**Gemlink is experimental and a work-in-progress.** Use at your own risk.
+---
+
+## ⚠️ Security Warning
+
+Gemlink is **experimental software** and under active development.
+
+Use at your own risk.
+
+---
 
 ## Deprecation Policy
 
-This release is considered deprecated 16 weeks after the release day. There
-is an automatic deprecation shutdown feature which will halt the node some
-time after this 16 week time period. The automatic feature is based on block
-height and can be explicitly disabled.
+Each Gemlink release is considered **deprecated 16 weeks after its release date**.
 
-## Building
+Gemlink includes an **automatic deprecation shutdown mechanism** based on block
+height. Once a release is deprecated, the node will automatically shut down
+after the deprecation threshold is reached.
 
-### Install dependencies
+This behavior can be explicitly disabled via configuration.
 
-On Ubuntu/Debian-based systems:
+---
 
-On Ubuntu 20.04:
+## 🔧 Building Gemlink (Linux – Recommended)
+
+Gemlink uses a **self-contained build system (`depends/`)** to ensure
+reproducible, distribution-independent builds.
+
+This is the **officially supported and recommended build method**.
+
+---
+
+### ✅ Supported Operating Systems
+
+The following systems are supported using the `depends/` build system:
+
+- **Ubuntu 20.04 LTS**
+- **Ubuntu 22.04 LTS**
+- **Ubuntu 24.04 LTS**
+
+> Older distributions (18.04 and earlier) are not supported or recommended.
+
+The **same build procedure works unchanged** on all supported Ubuntu versions.
+
+---
+
+### 📦 System Dependencies (Ubuntu)
+
+Install the minimal set of system packages required to run the build system:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  build-essential \
+  autoconf automake libtool pkg-config \
+  libssl-dev \
+  libevent-dev \
+  libncurses-dev \
+  bsdextrautils \
+  python3 \
+  curl git \
+  clang cmake
+```
+⚠️ Important
+
+Do NOT install or use system versions of the following libraries:
+
+Berkeley DB
+
+Boost
+
+ZeroMQ
+
+All critical dependencies are built internally via the depends/ system.
+
+🏗️ Build Instructions (Linux)
 
 ```
-$ sudo apt-get install \
- build-essential pkg-config libc6-dev m4 g++-multilib \
- autoconf libtool ncurses-dev unzip git python3 python3-zmq \
- zlib1g-dev curl bsdmainutils automake libtinfo5
-```
-on Ubuntu 24.04:
-```
-sudo apt-get install -y \
-  build-essential pkg-config libc6-dev m4 g++-multilib \
-  autoconf automake libtool \
-  libncurses-dev libtinfo6 \
-  unzip git \
-  python3 python3-zmq \
-  zlib1g-dev curl \
-  bsdextrautils
-```
-On Fedora-based systems:
+git clone https://github.com/gemlink/gemlink.git
+cd gemlink
 
-```
-$ sudo dnf install \
-      git pkgconfig automake autoconf ncurses-devel python \
-      python-zmq wget gtest-devel gcc gcc-c++ libtool patch curl
-```
+# 1. Build toolchain and all dependencies
+cd depends
+make -j$(nproc)
+cd ..
 
-Windows:
+# 2. Generate build system
+./autogen.sh
+
+# 3. Configure (wallet enabled – required for masternodes)
+./configure --prefix="$(pwd)/depends/x86_64-pc-linux-gnu"
+
+# 4. Build Gemlink
+make -j$(nproc)
+```
+After a successful build, the binaries will be available in:
 
 ```
-sudo apt-get install \
-    build-essential pkg-config libc6-dev m4 \
-    autoconf libtool ncurses-dev unzip git python \
-    zlib1g-dev wget bsdmainutils automake mingw-w64
+src/gemlinkd
+src/gemlink-cli
+src/gemlink-tx
 ```
 
-On Mac systems:
+🧪 Quick Verification
+
+Verify the build and confirm that it links against depends/:
 
 ```
-brew tap discoteq/discoteq; brew install flock
-brew install autoconf autogen automake
-brew install gcc5
-brew install binutils
-brew install protobuf
-brew install coreutils
-brew install wget llvm
+src/gemlinkd --version
+ldd src/gemlinkd | grep depends
 ```
 
-### Check GCC version
+🧠 Important Notes
 
-gcc/g++ 9 or later is required. Gemlink has been successfully built using gcc/g++ versions 9 inclusive. Use `g++ --version` to check which version you have.
+Gemlink must be built with wallet support if masternodes or budgeting
+features are enabled.
 
-On Ubuntu Trusty, if your version is too old then you can install gcc/g++ 4.9 as follows:
+The build uses clang + libc++ provided by depends/, not the system GCC.
+
+The system GCC version is not relevant for supported Ubuntu builds.
+
+The build process is identical on Ubuntu 20.04, 22.04, and 24.04.
+
+❌ Legacy / Deprecated Build Methods
+
+The following build methods are deprecated and not supported:
+
+zcutil/build.sh for native Linux builds
+
+System-wide Berkeley DB (libdb4.8)
+
+Manual installation of Boost or ZeroMQ
+
+GCC-only builds on modern Linux distributions
+
+These methods may fail or produce unstable binaries.
+
+🧪 Fedora (Experimental)
+
+Building on Fedora is possible only via the depends/ build system.
+
+System-provided libraries (Boost, Berkeley DB, ZeroMQ) must NOT be used.
+
+Fedora dependencies
 
 ```
-$ sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-$ sudo apt-get update
-sudo apt install gcc-9 g++-9
+sudo dnf install -y \
+  git \
+  autoconf automake libtool pkg-config \
+  clang llvm lld \
+  openssl-devel \
+  libevent-devel \
+  ncurses-devel \
+  python3 \
+  cmake \
+  curl
 ```
 
-### Fetch the software and parameter files
-
-Fetch our repository with git and run `fetch-params.sh` like so:
+Build process
 
 ```
-$ ./zcutil/fetch-params.sh
+cd depends
+make -j$(nproc)
+cd ..
+
+./autogen.sh
+./configure --prefix="$(pwd)/depends/x86_64-pc-linux-gnu"
+make -j$(nproc)
+```
+Fedora builds are considered experimental.
+
+🔐 Cryptographic Parameters (Optional)
+
+If your configuration requires shielded transactions or zk-SNARK parameters,
+fetch them using:
+
+```
+./zcutil/fetch-params.sh
 ```
 
-### Build Linux/MAC
-
-Ensure you have successfully installed all system package dependencies as described above. Then run the build, e.g.:
-
-```
-$ git clone https://github.com/gemlink/gemlink.git
-$ cd gemlink/
-$ ./zcutil/build.sh
-```
-
-This should compile our dependencies and build `gemlinkd`
-
-### Build Windows
-
-With docker:
+🌐 Cross-Compilation (Legacy / Advanced)
+Windows (via Docker – legacy)
 
 ```
 docker run -ti electriccoinco/zcashd-build-ubuntu2004 bash
@@ -125,32 +212,37 @@ git clone https://github.com/gemlink/gemlink.git
 cd gemlink
 HOST=x86_64-w64-mingw32 ./zcutil/build.sh
 ```
-
-Ensure you have successfully installed all system package dependencies as described above. Then run the build, e.g.:
-
-```
-$ git clone https://github.com/gemlink/gemlink.git
-$ cd gemlink/
-HOST=x86_64-w64-mingw32 ./zcutil/build.sh
-```
-### Build ARM
+ARM (legacy)
 
 ```
-$ git clone https://github.com/gemlink/gemlink.git
-$ cd gemlink/
+git clone https://github.com/gemlink/gemlink.git
+cd gemlink
 HOST=aarch64-linux-gnu LDFLAGS=-s ./zcutil/build.sh
 ```
----
 
-### Need Help?
+Cross-compilation currently relies on legacy tooling and is not officially supported.
 
-- See the documentation at the [refer from Zcash Wiki](https://github.com/zcash/zcash/wiki/1.0-User-Guide)
-  for help and more information.
-- Ask for help on the [Gemlink](https://discuss.gemlink.org/) forum or contact us via email support@gemlink.org
+🆘 Need Help?
 
-Participation in the Gemlink project is subject to a
-[Code of Conduct](code_of_conduct.md).
+Refer to the Zcash Wiki
 
-## License
+Ask questions in the Gemlink community channels
 
-For license information see the file [COPYING](COPYING).
+Contact support: support@gemlink.org
+
+Participation in the Gemlink project is subject to the
+Code of Conduct
+
+
+License
+
+For license information, see the file COPYING.
+
+
+
+
+
+
+
+
+
