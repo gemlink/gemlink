@@ -296,7 +296,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     returnObj.push_back(Pair("listtransactions", trans));
 
     if (params.size() > 0 && (params[0].get_int() == 1 || params[0].get_int() == 0)) {
-        if (masternodeSync.IsMasternodeListSynced() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+        if (masternodeSync.IsMasternodeListSynced() && NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR) && !NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XAVIER)) {
             vector<COutput> vCoins;
             pwalletMain->MasternodeCoins(vCoins);
 
