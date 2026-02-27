@@ -78,6 +78,11 @@ const struct NUInfo NetworkUpgradeInfo[Consensus::MAX_NETWORK_UPGRADES] = {
         /*.nBranchId =*/0x76b809bb,
         /*.strName =*/"Latverion",
         /*.strInfo =*/"Decrease collateral locking time to 7 days",
+    },
+    {
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Xavier",
+        /*.strInfo =*/"Remove collateral locking time",
     }};
 
 const uint32_t SPROUT_BRANCH_ID = NetworkUpgradeInfo[Consensus::BASE_SPROUT].nBranchId;
