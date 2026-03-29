@@ -2550,7 +2550,7 @@ CAmount CWalletTx::GetLockedCredit() const
         // Add locked coins
         if (pwallet->IsLockedCoin(hashTx, i)) {
             // move to get masternode coin
-            if (!NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
+            if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XAVIER) || !NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_XANDAR)) {
                 nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             } else {
                 continue;
